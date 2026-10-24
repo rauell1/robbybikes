@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ["postgres", "embedded-postgres"],
   experimental: {
     serverActions: {
-      bodySizeLimit: "10mb",
+      bodySizeLimit: "25mb",
       ...(allowedOrigins.length > 0 ? { allowedOrigins } : {}),
     },
   },

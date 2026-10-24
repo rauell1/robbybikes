@@ -15,6 +15,7 @@ import { initialBikeFormState } from "@/lib/actions/state";
 import { CONDITION_OPTIONS, TRANSMISSION_OPTIONS, USAGE_OPTIONS } from "@/lib/filters";
 import { STATUS_LABELS } from "@/lib/format";
 import type { Motorcycle, MotorcycleStatus } from "@/lib/db/schema";
+import { optimizeImageForUpload } from "@/lib/image-compress";
 import { cn } from "@/lib/utils";
 
 const STATUS_ORDER: MotorcycleStatus[] = ["available", "reserved", "pending_sale", "sold"];
@@ -50,6 +51,7 @@ export function BikeForm({
 
   const [selectedPhotos, setSelectedPhotos] = useState<LocalPhotoPreview[]>([]);
   const [isDragging, setIsDragging] = useState(false);
+  const [isOptimizing, setIsOptimizing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const syncInputFiles = (photos: LocalPhotoPreview[]) => {
@@ -65,23 +67,32 @@ export function BikeForm({
     }
   };
 
-  const handleFiles = (fileList: FileList | File[]) => {
-    const validFiles = Array.from(fileList).filter(
-      (file) => file.type.startsWith("image/") && file.size > 0 && file.size <= 6 * 1024 * 1024,
+  const handleFiles = async (fileList: FileList | File[]) => {
+    const rawFiles = Array.from(fileList).filter(
+      (file) => file.type.startsWith("image/") && file.size > 0 && file.size <= 30 * 1024 * 1024,
     );
-    if (validFiles.length === 0) return;
+    if (rawFiles.length === 0) return;
 
-    const newPreviews: LocalPhotoPreview[] = validFiles.map((file) => ({
-      id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
+    setIsOptimizing(true);
+    try {
+      const optimizedFiles = await Promise.all(
+        rawFiles.map((file) => optimizeImageForUpload(file)),
+      );
 
-    setSelectedPhotos((prev) => {
-      const updated = [...prev, ...newPreviews];
-      setTimeout(() => syncInputFiles(updated), 0);
-      return updated;
-    });
+      const newPreviews: LocalPhotoPreview[] = optimizedFiles.map((file) => ({
+        id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }));
+
+      setSelectedPhotos((prev) => {
+        const updated = [...prev, ...newPreviews];
+        setTimeout(() => syncInputFiles(updated), 0);
+        return updated;
+      });
+    } finally {
+      setIsOptimizing(false);
+    }
   };
 
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,9 +262,16 @@ export function BikeForm({
             <p className="mt-3 text-sm font-semibold text-ink-900">
               Click or tap to upload photos, or drag and drop
             </p>
-            <p className="mt-1 text-xs text-mist-500">
-              Select one or multiple photos: JPG, PNG, WebP or AVIF (up to 6 MB each)
-            </p>
+            {isOptimizing ? (
+              <div className="mt-1 flex items-center gap-1.5 text-xs font-medium text-accent-700">
+                <Loader2 className="size-3.5 animate-spin text-accent-600" aria-hidden="true" />
+                Optimizing photos for fast loading...
+              </div>
+            ) : (
+              <p className="mt-1 text-xs text-mist-500">
+                Select one or multiple photos: JPG, PNG, WebP or AVIF. Automatically optimized for fast mobile loading.
+              </p>
+            )}
             <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-mist-100 px-3 py-1 text-[11px] font-medium text-mist-700">
               <Camera className="size-3 text-mist-500" aria-hidden="true" />
               First photo selected will be the main cover image
@@ -310,7 +328,7 @@ export function BikeForm({
                     </button>
                     <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
                       <span className="truncate max-w-[70%]">{photo.file.name}</span>
-                      <span>{(photo.file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                      <span>{(photo.file.size / 1024).toFixed(0)} KB</span>
                     </div>
                   </div>
                 ))}
@@ -580,7 +598,7 @@ export function BikeForm({
         <Link href="/admin/bikes" className={cn(buttonStyles({ variant: "ghost" }), "justify-center")}>
           Cancel
         </Link>
-        <Button type="submit" size="lg" disabled={pending}>
+        <Button type="submit" size="lg" disabled={pending || isOptimizing}>
           {pending ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
