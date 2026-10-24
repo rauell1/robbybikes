@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
-import { ArrowRight, Heart, Trash2, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ArrowRight, Check, Copy, Heart, Share2, Trash2, X } from "lucide-react";
 import { useFavorites } from "@/components/bikes/favorites-context";
 import { BikePhoto } from "@/components/bikes/bike-photo";
 import { WhatsAppIcon } from "@/components/icons";
@@ -13,6 +13,7 @@ import { absoluteUrl } from "@/lib/seo";
 export function FavoritesModal() {
   const { savedBikes, isModalOpen, closeFavoritesModal, removeFavorite, clearFavorites } =
     useFavorites();
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!isModalOpen) return;
@@ -24,6 +25,36 @@ export function FavoritesModal() {
   }, [isModalOpen, closeFavoritesModal]);
 
   if (!isModalOpen) return null;
+
+  const origin =
+    typeof window !== "undefined" && window.location.origin
+      ? window.location.origin
+      : absoluteUrl("");
+  const bikeIds = savedBikes.map((b) => b.id).join(",");
+  const shortlistUrl = `${origin}/bikes?shortlist=${encodeURIComponent(bikeIds)}`;
+
+  const whatsappShareMessage = [
+    "My motorcycle shortlist from Robbybikes Eastleigh:",
+    ...savedBikes.map(
+      (b, i) => `${i + 1}. ${b.brand} ${b.model} (${formatKes(b.priceKes)})`,
+    ),
+    "",
+    `Open on any phone or laptop: ${shortlistUrl}`,
+  ].join("\n");
+
+  const whatsappShareUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappShareMessage)}`;
+
+  const handleCopy = async () => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shortlistUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2200);
+      }
+    } catch {
+      // Clipboard write failed
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs animate-fade-in">
@@ -162,6 +193,52 @@ export function FavoritesModal() {
               );
             })
           )}
+
+          {savedBikes.length > 0 ? (
+            <div className="mt-4 rounded-xl border border-mist-200 bg-mist-50/80 p-3.5">
+              <div className="flex items-start gap-2.5">
+                <div className="grid size-7 shrink-0 place-items-center rounded-lg bg-ink-900 text-white">
+                  <Share2 className="size-3.5" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-bold text-xs text-ink-900">
+                    Access on another phone or computer
+                  </h4>
+                  <p className="mt-0.5 text-[11px] text-mist-600 leading-relaxed">
+                    No account needed. Share your shortlist to WhatsApp or copy the link to view your saved bikes on any other device.
+                  </p>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <a
+                      href={whatsappShareUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-whatsapp px-3 py-1.5 text-xs font-bold text-white hover:bg-whatsapp-dark transition-colors"
+                    >
+                      <WhatsAppIcon className="size-3.5" />
+                      <span>Share to WhatsApp</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleCopy}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-mist-300 bg-white px-3 py-1.5 text-xs font-semibold text-ink-800 hover:bg-mist-100 transition-colors"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="size-3.5 text-emerald-600" />
+                          <span className="text-emerald-700 font-bold">Link copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="size-3.5 text-mist-500" />
+                          <span>Copy sync link</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Footer */}

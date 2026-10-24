@@ -55,6 +55,51 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Check URL for shared shortlist (e.g. ?shortlist=id1,id2)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sharedShortlist = urlParams.get("shortlist");
+      if (!sharedShortlist) return;
+
+      const ids = sharedShortlist
+        .split(",")
+        .map((id) => id.trim())
+        .filter(Boolean);
+
+      if (ids.length === 0) return;
+
+      fetch(`/api/bikes/shortlist?ids=${encodeURIComponent(ids.join(","))}`)
+        .then((res) => (res.ok ? res.json() : { bikes: [] }))
+        .then((data) => {
+          if (Array.isArray(data.bikes) && data.bikes.length > 0) {
+            setSavedBikes((prev) => {
+              const existingIds = new Set(prev.map((b) => b.id));
+              const newBikes = data.bikes.filter(
+                (b: MotorcycleWithImages) => !existingIds.has(b.id),
+              );
+              return [...prev, ...newBikes];
+            });
+            setIsModalOpen(true);
+            try {
+              const cleanUrl = new URL(window.location.href);
+              cleanUrl.searchParams.delete("shortlist");
+              const newSearch = cleanUrl.searchParams.toString();
+              const cleanPath = cleanUrl.pathname + (newSearch ? `?${newSearch}` : "");
+              window.history.replaceState({}, "", cleanPath);
+            } catch {
+              // Ignore history error
+            }
+          }
+        })
+        .catch((err) => console.error("Shortlist import error:", err));
+    } catch {
+      // Ignore URL parsing errors
+    }
+  }, []);
+
   // Save changes to local storage
   useEffect(() => {
     if (!isInitialized) return;
