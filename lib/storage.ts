@@ -23,6 +23,10 @@ export function isBlobStorageConfigured(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
+export function isNeonStorageConfigured(): boolean {
+  return Boolean(process.env.AWS_ENDPOINT_URL_S3 && process.env.AWS_ACCESS_KEY_ID);
+}
+
 /** Magic-byte check so a spoofed Content-Type cannot sneak in a script. */
 function hasValidSignature(buffer: Buffer, mimeType: string): boolean {
   if (mimeType === "image/jpeg") {
@@ -57,8 +61,9 @@ export type StoredImage = {
 
 /**
  * Stores an uploaded motorcycle photo.
- * Uses Vercel Blob when BLOB_READ_WRITE_TOKEN is configured, otherwise writes
- * to a local directory served through /api/uploads (development only).
+ * Prioritizes Neon Object Storage (S3-compatible) when configured,
+ * then Vercel Blob when BLOB_READ_WRITE_TOKEN is configured,
+ * otherwise writes to a local directory served through /api/uploads (development only).
  */
 export async function storeImageFile(file: File): Promise<StoredImage> {
   if (!file || typeof file === "string" || file.size === 0) {
@@ -78,6 +83,30 @@ export async function storeImageFile(file: File): Promise<StoredImage> {
     throw new ImageStorageError("That file does not look like a valid image.");
   }
 
+  if (isNeonStorageConfigured()) {
+    const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
+    const s3 = new S3Client({
+      forcePathStyle: true,
+      endpoint: process.env.AWS_ENDPOINT_URL_S3,
+      region: process.env.AWS_REGION || "us-east-2",
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+      },
+    });
+    const bucket = process.env.NEON_OBJECT_STORAGE_BUCKET || "assets";
+    const key = `motorcycles/${randomUUID()}${extension}`;
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: file.type,
+      }),
+    );
+    return { url: `/api/storage/${key}`, key: `neon:${key}` };
+  }
+
   if (isBlobStorageConfigured()) {
     const { put } = await import("@vercel/blob");
     const blob = await put(`motorcycles/${randomUUID()}${extension}`, buffer, {
@@ -90,7 +119,7 @@ export async function storeImageFile(file: File): Promise<StoredImage> {
 
   if (process.env.VERCEL === "1") {
     throw new ImageStorageError(
-      "Image uploads need Vercel Blob on this deployment. Set BLOB_READ_WRITE_TOKEN, or add an image URL instead.",
+      "Image uploads need Vercel Blob or Neon Object Storage on this deployment. Set storage credentials, or add an image URL instead.",
     );
   }
 
@@ -106,6 +135,27 @@ export async function deleteStoredImage(image: {
   storageKey: string | null;
 }): Promise<void> {
   try {
+    if (image.storageKey?.startsWith("neon:") && isNeonStorageConfigured()) {
+      const key = image.storageKey.slice("neon:".length);
+      const { S3Client, DeleteObjectCommand } = await import("@aws-sdk/client-s3");
+      const s3 = new S3Client({
+        forcePathStyle: true,
+        endpoint: process.env.AWS_ENDPOINT_URL_S3,
+        region: process.env.AWS_REGION || "us-east-2",
+        credentials: {
+          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+        },
+      });
+      const bucket = process.env.NEON_OBJECT_STORAGE_BUCKET || "assets";
+      await s3.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        }),
+      );
+      return;
+    }
     if (image.storageKey?.startsWith("local:")) {
       const fileName = image.storageKey.slice("local:".length);
       if (!/^[a-f0-9-]+\.(jpg|png|webp|avif)$/i.test(fileName)) return;
