@@ -81,7 +81,7 @@ export function WhatsAppBuilder({
             Enquire directly on WhatsApp
           </h3>
           <p className="text-xs text-mist-500">
-            Choose what you want to ask — your message will be pre-filled automatically
+            Choose what you want to ask: your message will be pre-filled automatically
           </p>
         </div>
       </div>

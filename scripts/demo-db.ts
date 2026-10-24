@@ -11,7 +11,7 @@ loadEnv();
  * dev dependency) on the loopback interface so local development and previews
  * use the exact same driver and SQL dialect as Neon in production.
  *
- * This script is for local development only — production deployments must set
+ * This script is for local development only - production deployments must set
  * DATABASE_URL to a hosted Neon (or other PostgreSQL) connection string.
  */
 const HOST = process.env.DEMO_DB_HOST?.trim() || "127.0.0.1";
@@ -71,13 +71,13 @@ async function main() {
   console.log("✔ Demo database ready.");
   console.log(`  DATABASE_URL="${url}"`);
   console.log(`  Local data is stored in ${DATA_DIR}.`);
-  console.log("  Stop with Ctrl+C — PostgreSQL shuts down cleanly and keeps your data.");
+  console.log("  Stop with Ctrl+C - PostgreSQL shuts down cleanly and keeps your data.");
 
   let closing = false;
   const shutdown = async (signal: string) => {
     if (closing) return;
     closing = true;
-    console.log(`\n${signal} received — stopping demo database…`);
+    console.log(`\n${signal} received - stopping demo database…`);
     try {
       await postgres.stop();
       console.log("Demo database stopped.");

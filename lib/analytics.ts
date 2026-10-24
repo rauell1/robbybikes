@@ -5,7 +5,7 @@
  *
  * Events are pushed to `window.dataLayer` only. No analytics vendor is loaded
  * and no personal data is included. If the owner later connects Google
- * Analytics or another tag manager, they can read these events — after
+ * Analytics or another tag manager, they can read these events after
  * reviewing their consent obligations under the Kenya Data Protection Act.
  */
 type EventParams = Record<string, string | number | boolean | undefined>;

@@ -65,7 +65,7 @@ export function EnquiryUpdateForm({
           rows={5}
           maxLength={2000}
           defaultValue={internalNotes ?? ""}
-          placeholder="Called on 24 Oct — viewing booked for Saturday 10am."
+          placeholder="Called on 24 Oct: viewing booked for Saturday 10am."
         />
       </Field>
 

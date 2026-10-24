@@ -149,7 +149,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
               imageUrl: image.imageUrl,
               altText: image.altText,
             }))}
-            title={`${title} — photographs`}
+            title={`${title} - photographs`}
             isSample={bike.isSample}
           />
 
@@ -394,7 +394,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
                 </span>
               </p>
               <div className="flex items-center justify-between gap-2 pt-2 border-t border-mist-100">
-                <ShareListing title={`${title} — ${formatKes(bike.priceKes)}`} url={shareUrlValue} />
+                <ShareListing title={`${title} - ${formatKes(bike.priceKes)}`} url={shareUrlValue} />
                 <a
                   href={whatsappHref(
                     viewingRequestMessage(
@@ -439,7 +439,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
               {[
                 "Your enquiry goes directly to the dealership team.",
                 "We reply during business hours on the contact method you choose.",
-                "No online payment — everything is settled in person after inspection.",
+                "No online payment: everything is settled in person after inspection.",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden="true" />

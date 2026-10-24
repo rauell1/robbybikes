@@ -8,7 +8,7 @@ Collect from the owner:
 
 - which phone number has WhatsApp (see `docs/BUSINESS-VERIFICATION.md`);
 - the confirmed trading/legal name for the footer and terms;
-- real photographs and stock data — demo inventory must not ship;
+- real photographs and stock data - demo inventory must not ship;
 - the production domain.
 
 ## 1. Create the database (Neon)
@@ -32,17 +32,17 @@ Set these for Production (and Preview if you want previews to work):
 | --- | --- |
 | `DATABASE_URL` | Neon pooled connection string |
 | `NEXT_PUBLIC_SITE_URL` | `https://<your-domain>` (no trailing slash) |
-| `ADMIN_SESSION_SECRET` | output of `openssl rand -base64 48` — different from local |
+| `ADMIN_SESSION_SECRET` | output of `openssl rand -base64 48` - different from local |
 | `WHATSAPP_NUMBER` | confirmed WhatsApp number, digits only |
 | `BLOB_READ_WRITE_TOKEN` | from the Vercel Blob store (step 4) |
-| `SOCIAL_TIKTOK_URL` | only once the profile is verified — otherwise leave unset |
+| `SOCIAL_TIKTOK_URL` | only once the profile is verified - otherwise leave unset |
 | `NEXT_PUBLIC_GA_ID` | optional GA4 measurement ID |
 
 Leave `DEMO_MODE` unset. It exists so the local seeder can create a demo administrator; if it is set in production, the demo credentials are shown on the login screen.
 
 ## 4. Blob storage for photos
 
-Vercel dashboard → **Storage → Create → Blob** → connect it to the project. Vercel adds `BLOB_READ_WRITE_TOKEN` automatically; confirm it exists in the project's environment variables. Without it, uploads fall back to the local filesystem, which is read-only/ephemeral on Vercel — administrators uploads would fail.
+Vercel dashboard → **Storage → Create → Blob** → connect it to the project. Vercel adds `BLOB_READ_WRITE_TOKEN` automatically; confirm it exists in the project's environment variables. Without it, uploads fall back to the local filesystem, which is read-only/ephemeral on Vercel - administrators uploads would fail.
 
 ## 5. First deploy
 
@@ -61,7 +61,7 @@ DATABASE_URL="…" npm run admin:create -- --email owner@example.com --password 
 
 1. Vercel → Project → **Settings → Domains** → add `robbybikes.co.ke` (or the chosen domain).
 2. At the registrar, point the apex `A`/`ALIAS` record and the `www` `CNAME` at Vercel as instructed.
-3. After the certificate is issued, set `NEXT_PUBLIC_SITE_URL` to the final URL (including `https://`) and redeploy — canonical links, the sitemap, Open Graph images and WhatsApp listing links all derive from it.
+3. After the certificate is issued, set `NEXT_PUBLIC_SITE_URL` to the final URL (including `https://`) and redeploy - canonical links, the sitemap, Open Graph images and WhatsApp listing links all derive from it.
 4. Submit `https://<domain>/sitemap.xml` in Google Search Console.
 
 ## 7. Backups
@@ -81,7 +81,7 @@ pg_restore --clean --no-owner --no-privileges \
   --dbname "postgresql://…neon.tech/robbybikes?sslmode=require" robbybikes-2026-10-24.dump
 ```
 
-- **Photos**: Vercel Blob is the source of truth for uploads. Keep the original photographs on the dealership's own drive as well — Blob is a serving layer, not an archive.
+- **Photos**: Vercel Blob is the source of truth for uploads. Keep the original photographs on the dealership's own drive as well - Blob is a serving layer, not an archive.
 - Test a restore into a scratch database at least once before launch, and again after any schema change.
 
 ## 8. Ongoing operations
@@ -91,7 +91,7 @@ pg_restore --clean --no-owner --no-privileges \
 | Add or reset an administrator | `npm run admin:create -- --email … --password '…'` with `DATABASE_URL` set |
 | Apply a new migration | `npm run db:migrate` (or automatic on the next deploy if you wire it) |
 | Remove demo content | `npm run db:sample:clear` |
-| Bulk-add stock | `npm run inventory:import -- --file stock.csv` — always `--dry-run` first |
+| Bulk-add stock | `npm run inventory:import -- --file stock.csv` - always `--dry-run` first |
 | Roll back code | Vercel → Deployments → promote the previous deployment |
 | Roll back schema | Neon point-in-time restore, then redeploy the matching code |
 

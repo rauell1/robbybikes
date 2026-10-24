@@ -195,7 +195,7 @@ async function main() {
   }
 
   if (issues.length > 0) {
-    console.error(`✖ Import aborted — ${issues.length} problem(s) found. Nothing was written.`);
+    console.error(`✖ Import aborted - ${issues.length} problem(s) found. Nothing was written.`);
     for (const issue of issues) console.error(`  • ${issue}`);
     process.exit(1);
   }
@@ -216,7 +216,7 @@ async function main() {
     console.log(`✔ Dry run: ${prepared.length} row(s) valid. Nothing written.`);
     console.log(`  File: ${filePath}`);
     for (const row of prepared.slice(0, 5)) {
-      console.log(`  • ${row.brand} ${row.model} — KSh ${row.priceKes} — ${row.status} — ${row.isPublished ? "published" : "draft"}`);
+      console.log(`  • ${row.brand} ${row.model} - KSh ${row.priceKes} - ${row.status} - ${row.isPublished ? "published" : "draft"}`);
     }
     process.exit(0);
   }

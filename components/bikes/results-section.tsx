@@ -34,7 +34,7 @@ export async function BikeResults({ filters }: { filters: BikeFilters }) {
           </h2>
           <p className="mt-0.5 text-xs text-mist-500">
             {isSoldArchive
-              ? "Sold archive — these bikes are no longer available."
+              ? "Sold archive: these bikes are no longer available."
               : filters.availability === "available"
                 ? "Available stock only."
                 : "Includes available, reserved and pending-sale bikes."}
@@ -86,7 +86,7 @@ export async function BikeResults({ filters }: { filters: BikeFilters }) {
           <div className="mt-8">
             <Pagination filters={filters} page={result.page} pageCount={result.pageCount} />
             <p className="mt-3 text-center text-xs text-mist-500">
-              Showing {(result.page - 1) * result.pageSize + 1}–
+              Showing {(result.page - 1) * result.pageSize + 1} to 
               {Math.min(result.page * result.pageSize, result.total)} of {result.total}
             </p>
           </div>
@@ -98,7 +98,7 @@ export async function BikeResults({ filters }: { filters: BikeFilters }) {
           </span>
           <h3 className="mt-4 text-lg font-bold text-ink-900">Nothing matches those filters yet</h3>
           <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-mist-600">
-            Stock changes often. Try a wider price range or a different brand — or ask us directly
+            Stock changes often. Try a wider price range or a different brand, or ask us directly
             what has just arrived in the yard.
           </p>
           <div className="mt-6 flex flex-col items-center justify-center gap-2 sm:flex-row">

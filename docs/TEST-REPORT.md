@@ -24,7 +24,7 @@ Anything not run here is listed under [Not covered](#not-covered) rather than im
 ### Public site
 
 - `/`, `/bikes`, `/brands`, `/about`, `/contact`, `/privacy`, `/terms` return 200; unknown listing slugs return 404.
-- Filters verified against known demo data: all (9 in stock), brand=Bajaj (2), Bajaj with a 100,000–140,000 range (2), availability=sold (1), `q=boxer` (2), condition=excellent + price_desc (1), minCc=150 (4), page=2, and an empty result state for an unknown brand.
+- Filters verified against known demo data: all (9 in stock), brand=Bajaj (2), Bajaj with a 100,000-140,000 range (2), availability=sold (1), `q=boxer` (2), condition=excellent + price_desc (1), minCc=150 (4), page=2, and an empty result state for an unknown brand.
 - Empty state renders explanatory copy plus "Clear filters" and a WhatsApp option, not a blank grid.
 - Listing page shows gallery, specs, description, breadcrumbs, Call, WhatsApp (message contains model, year, cc, `KSh` price and the absolute listing URL), Arrange viewing and Share.
 - Enquiry form: valid submission stored and linked to the correct motorcycle; invalid phone rejected inline; missing consent rejected server-side; honeypot submission silently accepted without writing a record; IP rate limit enforced.
@@ -68,7 +68,7 @@ Anything not run here is listed under [Not covered](#not-covered) rather than im
 
 - **No real browser or device testing.** The sandbox could not download a browser binary, so there are no screenshots, no Lighthouse run and no real iPhone/Android check. Layout was validated by reading rendered HTML and Tailwind classes only. Run Lighthouse and a device pass after deployment.
 - **No live Vercel/Neon deployment.** All testing used the local PostgreSQL demo server. Neon-specific behaviour (pooled endpoint, cold starts) is untested.
-- **No email, SMS or WhatsApp API integration** — none exists by design.
+- **No email, SMS or WhatsApp API integration** - none exists by design.
 - **Rate limiting is per process.** Behaviour behind multiple serverless instances is not verified.
 - **No load or penetration testing.** Only the checks described above.
 - **Accessibility**: colour contrast was calculated manually and landmarks/labels are present in markup, but no screen-reader or automated axe audit was run.

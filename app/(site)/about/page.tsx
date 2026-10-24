@@ -55,7 +55,7 @@ export default function AboutPage() {
           <h2>What we sell</h2>
           <p>
             We focus on practical, everyday motorcycles rather than showroom exotics. Most of our
-            stock is in the 125 cc to 180 cc range — the kind of bike that handles Nairobi traffic,
+            stock is in the 125 cc to 180 cc range: the kind of bike that handles Nairobi traffic,
             carries a load, or earns a living.
           </p>
           <ul>

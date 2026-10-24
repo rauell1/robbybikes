@@ -196,7 +196,7 @@ export function EnquiryForm({ motorcycleId, source, defaultMessage, compact = fa
         </div>
       </div>
 
-      {/* Honeypot — hidden from people, tempting to bots. */}
+      {/* Honeypot: hidden from people, tempting to bots. */}
       <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden">
         <label htmlFor="enquiry-website">Website</label>
         <input id="enquiry-website" name="website" type="text" tabIndex={-1} autoComplete="off" />

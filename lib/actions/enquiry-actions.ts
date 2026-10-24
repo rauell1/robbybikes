@@ -34,7 +34,7 @@ function fieldErrorsFrom(error: z.ZodError): Record<string, string[]> {
 
 const SILENT_SUCCESS: EnquiryFormState = {
   status: "success",
-  message: "Thank you — your enquiry has been received.",
+  message: "Thank you: your enquiry has been received.",
 };
 
 /**

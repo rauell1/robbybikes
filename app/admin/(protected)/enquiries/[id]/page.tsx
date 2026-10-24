@@ -147,7 +147,7 @@ export default async function EnquiryDetailPage({ params }: PageProps) {
               </div>
             ) : (
               <p className="mt-2 text-sm text-mist-600">
-                General enquiry — no specific motorcycle selected.
+                General enquiry: no specific motorcycle selected.
               </p>
             )}
           </section>

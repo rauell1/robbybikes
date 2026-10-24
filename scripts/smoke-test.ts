@@ -47,7 +47,7 @@ function expectStatus(path: string, body: string, response: Response, expected: 
   assert(
     response.status === expected,
     `${path} returned ${response.status}, expected ${expected}${
-      body ? ` — ${body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 120)}` : ""
+      body ? ` - ${body.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").slice(0, 120)}` : ""
     }`,
   );
 }
@@ -105,7 +105,7 @@ check("a published listing renders with offers and contact actions", async () =>
   const { body: sitemap } = await get("/sitemap.xml");
   const listing = /<loc>[^<]*\/bikes\/([a-z0-9-]+)<\/loc>/.exec(sitemap);
   if (!listing) {
-    console.log("      (skipped — no published listings in the sitemap)");
+    console.log("      (skipped - no published listings in the sitemap)");
     return;
   }
 

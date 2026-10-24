@@ -186,7 +186,7 @@ export function CompareModal() {
                 key={`cc-${bike.id}`}
                 className="border-t border-mist-100 py-2.5 text-xs font-semibold text-ink-900"
               >
-                {formatEngine(bike.engineCc) ?? "—"}
+                {formatEngine(bike.engineCc) ?? "-"}
               </div>
             ))}
 
@@ -199,7 +199,7 @@ export function CompareModal() {
                 key={`odo-${bike.id}`}
                 className="border-t border-mist-100 py-2.5 text-xs font-medium text-ink-900"
               >
-                {formatOdometer(bike.odometerKm) ?? "—"}
+                {formatOdometer(bike.odometerKm) ?? "-"}
               </div>
             ))}
 

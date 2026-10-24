@@ -42,7 +42,7 @@ export function pageMetadata({ title, description, path, image, noIndex }: PageM
       description,
       url,
       locale: "en_KE",
-      images: [{ url: ogImage, alt: `${business.name} — ${title}` }],
+      images: [{ url: ogImage, alt: `${business.name} - ${title}` }],
     },
     twitter: {
       card: "summary_large_image",

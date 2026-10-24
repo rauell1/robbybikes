@@ -59,7 +59,7 @@ export default async function BrandsPage() {
             <h2 className="text-xl font-bold tracking-tight text-ink-900">Popular model families</h2>
             <p className="mt-2 text-sm leading-relaxed text-mist-600">
               Model names customers ask for most often. If you do not see the exact bike you want,
-              send us a message — stock changes quickly.
+              send us a message: stock changes quickly.
             </p>
             <Link
               href="/contact"

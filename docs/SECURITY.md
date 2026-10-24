@@ -7,7 +7,7 @@ How the Robbybikes site protects the admin console, customer data and uploads, a
 - Sessions are signed JSON Web Tokens (HS256) stored in an HttpOnly, `SameSite=Lax` cookie (`robbybikes_admin`), valid for eight hours. The secret is `ADMIN_SESSION_SECRET`; rotating it signs everybody out.
 - Passwords are hashed with scrypt (per-user random salt, timing-safe comparison). There is no custom password storage and no password reuse elsewhere.
 - `proxy.ts` rejects unauthenticated requests to `/admin/**` before they reach a page, redirecting to `/admin/login?next=…`.
-- Every admin page and **every server action** independently calls `requireAdmin()` — hiding links is never the only protection. A request with a valid-looking URL but no session is redirected, and the action performs nothing.
+- Every admin page and **every server action** independently calls `requireAdmin()` - hiding links is never the only protection. A request with a valid-looking URL but no session is redirected, and the action performs nothing.
 - The session token is re-validated against the `admin_users` table on each request, so deactivating an account or changing its role takes effect immediately rather than at cookie expiry.
 - Login attempts go through the same rate limiter as public enquiries.
 - There is no signup route. Administrators are created from the command line (`npm run admin:create`), which also acts as the password reset path.
@@ -32,7 +32,7 @@ How the Robbybikes site protects the admin console, customer data and uploads, a
 - Accepted types: JPG, PNG, WebP, AVIF. The file signature is checked against the declared MIME type, so renaming a script to `.jpg` is rejected.
 - Maximum size is 6 MB, enforced in the server action (`serverActions.bodySizeLimit: "10mb"`).
 - Stored filenames are generated UUIDs; the original client filename is discarded.
-- Local uploads are served by `/api/uploads/[fileName]` with an extension allowlist and a fixed `.data/uploads` root — `..` traversal, nested paths and `.svg` (script-capable) files return 404.
+- Local uploads are served by `/api/uploads/[fileName]` with an extension allowlist and a fixed `.data/uploads` root - `..` traversal, nested paths and `.svg` (script-capable) files return 404.
 - Production uses Vercel Blob, whose URLs are immutable and served from a separate origin.
 
 ## Transport and headers

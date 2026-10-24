@@ -13,7 +13,7 @@ export function ShareListing({ title, url }: { title: string; url: string }) {
         return;
       }
     } catch {
-      // User cancelled or sharing unsupported — fall through to copy.
+      // User cancelled or sharing unsupported: fall through to copy.
     }
 
     try {

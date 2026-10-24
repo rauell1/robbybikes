@@ -16,7 +16,7 @@ export default function NotFound() {
             <Compass className="size-7" aria-hidden="true" />
           </span>
           <p className="mt-5 text-xs font-semibold uppercase tracking-[0.18em] text-accent-700">
-            404 — page not found
+            404: page not found
           </p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink-900">
             We could not find that page

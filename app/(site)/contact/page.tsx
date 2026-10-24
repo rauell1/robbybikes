@@ -172,7 +172,7 @@ export default function ContactPage() {
             <h3 className="text-sm font-semibold text-ink-900">What happens next</h3>
             <p className="mt-1.5">
               Your enquiry is stored for our team to follow up. We use your details only to respond
-              to this enquiry — see the{" "}
+              to this enquiry (see the{" "}
               <a href="/privacy" className="font-semibold text-accent-700 underline underline-offset-2">
                 privacy notice
               </a>

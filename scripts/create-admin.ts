@@ -75,7 +75,7 @@ async function main() {
 
   if (generated) {
     console.log("");
-    console.log("  Temporary password (shown once — store it securely):");
+    console.log("  Temporary password (shown once - store it securely):");
     console.log(`  ${password}`);
     console.log("");
     console.log("  Sign in at /admin/login and change it soon by re-running this script.");

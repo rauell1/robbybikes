@@ -86,7 +86,7 @@ export function HomeHero({ stats, searchPanel }: HomeHeroProps) {
       </div>
 
       <p className="pointer-events-none absolute bottom-2 right-3 text-[10px] text-white/50">
-        Illustrative image — to be replaced with dealership photography
+        Illustrative image: to be replaced with dealership photography
       </p>
     </section>
   );

@@ -61,7 +61,7 @@ Built with Next.js 16 (App Router), TypeScript (strict), Tailwind CSS 4, Drizzle
 
 - Node.js 22 or newer (tested on 22.x)
 - npm 10 or newer
-- PostgreSQL for production (Neon recommended) **or** nothing extra for local previews — `npm run demo:db` starts a local PostgreSQL cluster for you
+- PostgreSQL for production (Neon recommended) **or** nothing extra for local previews - `npm run demo:db` starts a local PostgreSQL cluster for you
 
 ---
 
@@ -83,17 +83,17 @@ NEXT_PUBLIC_SITE_URL="http://localhost:3000"
 Then use two terminals:
 
 ```bash
-# Terminal A — embedded PostgreSQL for local previews only
+# Terminal A - embedded PostgreSQL for local previews only
 npm run demo:db
 
-# Terminal B — schema, demo content and the dev server
+# Terminal B - schema, demo content and the dev server
 npm run db:seed
 npm run dev
 ```
 
 The site is at <http://localhost:3000> and the admin console at <http://localhost:3000/admin>.
 
-`npm run demo:db` prints the connection string it is listening on. It stores data in `.data/pg` and shuts down cleanly with `Ctrl+C`. It is a development convenience only — it is never used when `DATABASE_URL` points at a hosted database.
+`npm run demo:db` prints the connection string it is listening on. It stores data in `.data/pg` and shuts down cleanly with `Ctrl+C`. It is a development convenience only - it is never used when `DATABASE_URL` points at a hosted database.
 
 Create a real administrator instead of using the demo one:
 
@@ -138,10 +138,10 @@ Migrations live in `drizzle/`. They are applied automatically by `npm run demo:d
 
 Schema summary:
 
-- `motorcycles` — brand, model, slug, year, engine cc, asking price (integer, KES), condition, odometer, transmission, fuel type, colour, use, registration paperwork, description, inspection notes, service history, status, publishing flags, `is_sample`, internal notes, timestamps.
-- `motorcycle_images` — ordered photographs per motorcycle, with alt text and optional blob key.
-- `enquiries` — customer name, normalised phone, optional email, preferred contact method, message, linked motorcycle, source, status, internal notes and consent timestamp.
-- `admin_users` — email, name, scrypt password hash, role (`admin`/`staff`), active flag.
+- `motorcycles` - brand, model, slug, year, engine cc, asking price (integer, KES), condition, odometer, transmission, fuel type, colour, use, registration paperwork, description, inspection notes, service history, status, publishing flags, `is_sample`, internal notes, timestamps.
+- `motorcycle_images` - ordered photographs per motorcycle, with alt text and optional blob key.
+- `enquiries` - customer name, normalised phone, optional email, preferred contact method, message, linked motorcycle, source, status, internal notes and consent timestamp.
+- `admin_users` - email, name, scrypt password hash, role (`admin`/`staff`), active flag.
 
 Prices are stored as whole-shilling integers and formatted for display (`KSh 125,000`); they are never stored as formatted strings.
 
@@ -156,7 +156,7 @@ npm run admin:create -- --email staff@example.com --password 'another-password' 
 
 Re-running the command with an existing email resets that account's password. Sessions last eight hours, are HttpOnly and are re-validated against the database on each request, so deactivating an account ends access immediately.
 
-There is no self-service signup and no password reset by email — create or reset accounts from the command line.
+There is no self-service signup and no password reset by email - create or reset accounts from the command line.
 
 ---
 
@@ -220,7 +220,7 @@ npm test            # scripted data/logic tests
 npm run test:smoke  # HTTP smoke test against a running server
 ```
 
-The smoke test expects a running site (`npm run start` or `npm run dev`) and a seeded demo database. `npm run test:smoke -- -vv` style verbosity is not required — the script prints one line per check.
+The smoke test expects a running site (`npm run start` or `npm run dev`) and a seeded demo database. `npm run test:smoke -- -vv` style verbosity is not required - the script prints one line per check.
 
 ---
 
@@ -288,7 +288,7 @@ These rules are part of the product, not just guidance:
 - Prices are asking prices; the agreed price is settled after inspection in person.
 - Unknown specifications stay blank on the site rather than showing zero or a guess.
 - Sold motorcycles leave the available stock list; only administrators change availability.
-- No online payments in v1 — the conversion path is an enquiry followed by an in-person inspection.
+- No online payments in v1 - the conversion path is an enquiry followed by an in-person inspection.
 - Opening hours, the TikTok profile and an exact map pin are intentionally omitted until the dealership confirms them.
 
 ---
