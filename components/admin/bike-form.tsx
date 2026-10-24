@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { useEffect, useRef, useState, useActionState } from "react";
+import { Camera, ImagePlus, Link2, Loader2, Save, Upload, X } from "lucide-react";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Input, Select, Textarea } from "@/components/ui/input";
 import { Field } from "@/components/ui/field";
@@ -18,6 +18,12 @@ import type { Motorcycle, MotorcycleStatus } from "@/lib/db/schema";
 import { cn } from "@/lib/utils";
 
 const STATUS_ORDER: MotorcycleStatus[] = ["available", "reserved", "pending_sale", "sold"];
+
+type LocalPhotoPreview = {
+  id: string;
+  file: File;
+  previewUrl: string;
+};
 
 function SectionHeading({ title, description }: { title: string; description?: string }) {
   return (
@@ -42,10 +48,94 @@ export function BikeForm({
   );
   const errors = state.fieldErrors ?? {};
 
+  const [selectedPhotos, setSelectedPhotos] = useState<LocalPhotoPreview[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const syncInputFiles = (photos: LocalPhotoPreview[]) => {
+    if (typeof window === "undefined" || typeof DataTransfer === "undefined") return;
+    try {
+      const dt = new DataTransfer();
+      photos.forEach((p) => dt.items.add(p.file));
+      if (fileInputRef.current) {
+        fileInputRef.current.files = dt.files;
+      }
+    } catch {
+      // Fallback: browser handles file input directly
+    }
+  };
+
+  const handleFiles = (fileList: FileList | File[]) => {
+    const validFiles = Array.from(fileList).filter(
+      (file) => file.type.startsWith("image/") && file.size > 0 && file.size <= 6 * 1024 * 1024,
+    );
+    if (validFiles.length === 0) return;
+
+    const newPreviews: LocalPhotoPreview[] = validFiles.map((file) => ({
+      id: `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      file,
+      previewUrl: URL.createObjectURL(file),
+    }));
+
+    setSelectedPhotos((prev) => {
+      const updated = [...prev, ...newPreviews];
+      setTimeout(() => syncInputFiles(updated), 0);
+      return updated;
+    });
+  };
+
+  const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const removePhoto = (id: string) => {
+    setSelectedPhotos((prev) => {
+      const target = prev.find((p) => p.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      const updated = prev.filter((p) => p.id !== id);
+      syncInputFiles(updated);
+      return updated;
+    });
+  };
+
+  const clearAllPhotos = () => {
+    selectedPhotos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    setSelectedPhotos([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      selectedPhotos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+    };
+  }, [selectedPhotos]);
+
   const fieldError = (name: string) => errors[name]?.[0];
 
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} encType="multipart/form-data" className="space-y-6">
       {bike ? <input type="hidden" name="id" value={bike.id} /> : null}
 
       {state.status === "error" && state.message ? (
@@ -54,6 +144,7 @@ export function BikeForm({
         </div>
       ) : null}
 
+      {/* 1. Identity */}
       <section className="rounded-xl border border-mist-200 bg-white p-5">
         <SectionHeading
           title="Motorcycle identity"
@@ -120,6 +211,136 @@ export function BikeForm({
         </div>
       </section>
 
+      {/* 2. Photographs */}
+      <section className="rounded-xl border border-mist-200 bg-white p-5">
+        <SectionHeading
+          title="Photographs"
+          description={
+            mode === "create"
+              ? "Upload photos of the motorcycle. The first photo is the main cover image shown across the website."
+              : "Upload new photos or add an image URL to attach to this listing."
+          }
+        />
+
+        <div className="space-y-4">
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={cn(
+              "group relative flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-6 text-center transition-all",
+              isDragging
+                ? "border-accent-500 bg-accent-50/50"
+                : "border-mist-300 bg-mist-50/60 hover:border-mist-400 hover:bg-mist-50",
+            )}
+          >
+            <input
+              ref={fileInputRef}
+              id="photos"
+              name="photos"
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              onChange={handleFilesChange}
+              className="sr-only"
+            />
+            <div className="flex size-12 items-center justify-center rounded-full bg-white shadow-sm ring-1 ring-mist-200 group-hover:scale-105 transition-transform">
+              <Upload className="size-6 text-accent-600" aria-hidden="true" />
+            </div>
+            <p className="mt-3 text-sm font-semibold text-ink-900">
+              Click or tap to upload photos, or drag and drop
+            </p>
+            <p className="mt-1 text-xs text-mist-500">
+              Select one or multiple photos: JPG, PNG, WebP or AVIF (up to 6 MB each)
+            </p>
+            <div className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-mist-100 px-3 py-1 text-[11px] font-medium text-mist-700">
+              <Camera className="size-3 text-mist-500" aria-hidden="true" />
+              First photo selected will be the main cover image
+            </div>
+          </div>
+
+          {selectedPhotos.length > 0 ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-ink-900">
+                  Selected photos ({selectedPhotos.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={clearAllPhotos}
+                  className="text-xs text-mist-500 hover:text-red-600 transition-colors"
+                >
+                  Clear all
+                </button>
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+                {selectedPhotos.map((photo, index) => (
+                  <div
+                    key={photo.id}
+                    className="group relative aspect-[4/3] overflow-hidden rounded-lg border border-mist-200 bg-mist-100 shadow-sm"
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={photo.previewUrl}
+                      alt={`Selected motorcycle photo ${index + 1}`}
+                      className="size-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
+                    {index === 0 ? (
+                      <span className="absolute left-1.5 top-1.5 rounded bg-accent-600 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow-sm">
+                        Cover photo
+                      </span>
+                    ) : (
+                      <span className="absolute left-1.5 top-1.5 rounded bg-ink-950/70 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                        Photo {index + 1}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePhoto(photo.id);
+                      }}
+                      className="absolute right-1.5 top-1.5 grid size-6 place-items-center rounded-full bg-white/90 text-mist-700 shadow hover:bg-red-50 hover:text-red-600 transition-colors"
+                      title="Remove this photo"
+                      aria-label={`Remove photo ${index + 1}`}
+                    >
+                      <X className="size-3.5" aria-hidden="true" />
+                    </button>
+                    <div className="absolute bottom-1.5 left-1.5 right-1.5 flex items-center justify-between text-[10px] text-white">
+                      <span className="truncate max-w-[70%]">{photo.file.name}</span>
+                      <span>{(photo.file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="border-t border-mist-100 pt-3">
+            <Field
+              label="Or add photo by web link (optional)"
+              htmlFor="imageUrl"
+              optional
+              hint="Paste a direct https:// image link if your photo is hosted elsewhere."
+            >
+              <div className="relative">
+                <Link2 className="absolute left-3 top-2.5 size-4 text-mist-400" aria-hidden="true" />
+                <Input
+                  id="imageUrl"
+                  name="imageUrl"
+                  type="url"
+                  placeholder="https://images.example.com/motorcycle.jpg"
+                  className="pl-9"
+                />
+              </div>
+            </Field>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. Specifications */}
       <section className="rounded-xl border border-mist-200 bg-white p-5">
         <SectionHeading
           title="Specifications"
@@ -226,6 +447,7 @@ export function BikeForm({
         </div>
       </section>
 
+      {/* 4. Description and notes */}
       <section className="rounded-xl border border-mist-200 bg-white p-5">
         <SectionHeading
           title="Description and condition notes"
@@ -284,6 +506,7 @@ export function BikeForm({
         </div>
       </section>
 
+      {/* 5. Publishing */}
       <section className="rounded-xl border border-mist-200 bg-white p-5">
         <SectionHeading
           title="Publishing and availability"
@@ -311,7 +534,7 @@ export function BikeForm({
               <span>
                 <span className="font-semibold text-ink-900">Published on the website</span>
                 <span className="mt-0.5 block text-xs text-mist-600">
-                  Unticked listings stay as private drafts.
+                  Ticking this makes the motorcycle and its photographs go live on the public website immediately upon saving.
                 </span>
               </span>
             </label>
@@ -361,7 +584,7 @@ export function BikeForm({
           {pending ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Saving…
+              {mode === "create" ? "Creating listing and uploading photos..." : "Saving changes..."}
             </>
           ) : (
             <>

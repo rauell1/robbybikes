@@ -21,8 +21,8 @@ export default async function NewBikePage() {
         </Link>
         <h1 className="mt-2 text-2xl font-bold tracking-tight text-ink-900">Add a motorcycle</h1>
         <p className="mt-1 max-w-2xl text-sm text-mist-600">
-          Create the listing first, then add photographs. New listings are saved as drafts until you
-          tick &ldquo;Published on the website&rdquo;.
+          Upload photos, set the price and specifications, and publish your listing. When &ldquo;Published on the website&rdquo; is ticked,
+          the listing appears live on the frontend immediately.
         </p>
       </div>
 

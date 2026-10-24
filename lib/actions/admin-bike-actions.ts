@@ -155,6 +155,46 @@ export async function createBikeAction(
 
     if (!created) throw new Error("Insert failed");
     newId = created.id;
+
+    // Process photo uploads
+    const files = formData
+      .getAll("photos")
+      .filter((file): file is File => file instanceof File && file.size > 0);
+
+    let sortOrder = 0;
+    for (const file of files) {
+      try {
+        const stored = await storeImageFile(file);
+        await db.insert(motorcycleImages).values({
+          motorcycleId: newId,
+          imageUrl: stored.url,
+          storageKey: stored.key,
+          altText: `${data.brand} ${data.model}`,
+          sortOrder: sortOrder++,
+        });
+      } catch (err) {
+        console.error("Photo upload failed on create:", err);
+      }
+    }
+
+    const rawImageUrl = readField(formData, "imageUrl");
+    if (rawImageUrl) {
+      const url = normaliseImageUrl(rawImageUrl);
+      if (url) {
+        try {
+          await db.insert(motorcycleImages).values({
+            motorcycleId: newId,
+            imageUrl: url,
+            storageKey: null,
+            altText: `${data.brand} ${data.model}`,
+            sortOrder: sortOrder++,
+          });
+        } catch (err) {
+          console.error("Image URL save failed on create:", err);
+        }
+      }
+    }
+
     revalidateInventory(slug);
   } catch {
     return {
@@ -230,6 +270,45 @@ export async function updateBikeAction(
         updatedAt: new Date(),
       })
       .where(eq(motorcycles.id, id));
+
+    // Process any additional photos uploaded during update
+    const files = formData
+      .getAll("photos")
+      .filter((file): file is File => file instanceof File && file.size > 0);
+
+    let nextOrder = await nextSortOrder(id);
+    for (const file of files) {
+      try {
+        const stored = await storeImageFile(file);
+        await db.insert(motorcycleImages).values({
+          motorcycleId: id,
+          imageUrl: stored.url,
+          storageKey: stored.key,
+          altText: `${data.brand} ${data.model}`,
+          sortOrder: nextOrder++,
+        });
+      } catch (err) {
+        console.error("Photo upload failed on update:", err);
+      }
+    }
+
+    const rawImageUrl = readField(formData, "imageUrl");
+    if (rawImageUrl) {
+      const url = normaliseImageUrl(rawImageUrl);
+      if (url) {
+        try {
+          await db.insert(motorcycleImages).values({
+            motorcycleId: id,
+            imageUrl: url,
+            storageKey: null,
+            altText: `${data.brand} ${data.model}`,
+            sortOrder: nextOrder++,
+          });
+        } catch (err) {
+          console.error("Image URL save failed on update:", err);
+        }
+      }
+    }
 
     revalidateInventory(slug);
     if (slug !== existing.slug) revalidatePath(`/bikes/${existing.slug}`);

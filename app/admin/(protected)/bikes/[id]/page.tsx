@@ -79,7 +79,7 @@ export default async function EditBikePage({ params, searchParams }: PageProps) 
 
       {query.created ? (
         <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-          Listing created. Add photographs below, then publish it when it is ready.
+          Listing created successfully. You can manage, reorder, or add more photographs below at any time.
         </p>
       ) : null}
       {query.saved ? (
