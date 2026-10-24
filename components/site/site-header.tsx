@@ -119,17 +119,6 @@ export function SiteHeader() {
           </button>
 
           <a
-            href={telHref(business.phones[0].international)}
-            className={cn(
-              buttonStyles({ variant: "outline", size: "md" }),
-              "hidden xl:inline-flex",
-            )}
-            onClick={() => trackEvent("contact_phone", { context: "header" })}
-          >
-            <Phone className="size-4" aria-hidden="true" />
-            Call us
-          </a>
-          <a
             href={whatsappHref(generalWhatsAppMessage())}
             target="_blank"
             rel="noopener noreferrer"
