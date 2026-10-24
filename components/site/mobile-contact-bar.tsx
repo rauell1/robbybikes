@@ -21,13 +21,13 @@ export function MobileContactBar() {
   const primaryPhone = business.phones[0];
 
   return (
-    <div className="fixed bottom-0 inset-x-0 z-30 border-t border-mist-200 bg-white/95 px-3 py-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/85 md:hidden">
+    <div className="fixed bottom-0 inset-x-0 z-30 border-t border-mist-200 bg-white/95 px-3 pt-2 pb-[max(0.6rem,env(safe-area-inset-bottom))] shadow-lg backdrop-blur supports-[backdrop-filter]:bg-white/85 md:hidden">
       <div className="flex items-center gap-2 max-w-md mx-auto">
         {/* Shortlist button */}
         <button
           type="button"
           onClick={openFavoritesModal}
-          className="relative grid size-10 shrink-0 place-items-center rounded-xl border border-mist-200 bg-white text-mist-600 hover:text-red-600 transition-colors"
+          className="relative grid size-11 shrink-0 place-items-center rounded-xl border border-mist-200 bg-white text-mist-600 hover:text-red-600 transition-colors"
           aria-label="View saved shortlist"
         >
           <Heart className={cn("size-4", count > 0 && "fill-red-600 text-red-600")} />
@@ -42,10 +42,10 @@ export function MobileContactBar() {
         <a
           href={telHref(primaryPhone.international)}
           onClick={() => trackEvent("contact_phone", { context: "mobile_bottom_bar" })}
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-ink-950 px-3 text-xs font-bold text-white transition-all active:scale-98"
+          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-ink-950 px-2.5 text-xs font-bold text-white transition-all active:scale-98"
         >
-          <Phone className="size-3.5" aria-hidden="true" />
-          <span>Call: {primaryPhone.display}</span>
+          <Phone className="size-3.5 shrink-0" aria-hidden="true" />
+          <span className="truncate">Call: {primaryPhone.display}</span>
         </a>
 
         {/* WhatsApp button */}
@@ -54,10 +54,10 @@ export function MobileContactBar() {
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => trackEvent("contact_whatsapp", { context: "mobile_bottom_bar" })}
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-xl bg-whatsapp px-3 text-xs font-bold text-white shadow-green-glow transition-all active:scale-98 hover:bg-whatsapp-dark"
+          className="flex h-11 flex-1 items-center justify-center gap-1.5 rounded-xl bg-whatsapp px-2.5 text-xs font-bold text-white shadow-green-glow transition-all active:scale-98 hover:bg-whatsapp-dark"
         >
-          <WhatsAppIcon className="size-4" />
-          <span>WhatsApp Us</span>
+          <WhatsAppIcon className="size-4 shrink-0" />
+          <span className="truncate">WhatsApp Us</span>
         </a>
       </div>
     </div>

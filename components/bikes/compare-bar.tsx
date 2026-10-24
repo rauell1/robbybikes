@@ -13,7 +13,7 @@ export function CompareBar() {
   return (
     <aside
       aria-label="Motorcycle comparison bar"
-      className="fixed bottom-4 left-4 right-4 z-40 mx-auto max-w-4xl animate-slide-up rounded-2xl border border-white/20 bg-ink-950/95 p-3 text-white shadow-2xl backdrop-blur-md sm:bottom-6 sm:p-4"
+      className="fixed bottom-18 left-3 right-3 z-40 mx-auto max-w-4xl animate-slide-up rounded-2xl border border-white/20 bg-ink-950/95 p-3 text-white shadow-2xl backdrop-blur-md md:bottom-6 md:left-6 md:right-6 sm:p-4"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">

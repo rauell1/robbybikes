@@ -28,7 +28,7 @@ export function WhatsAppFab() {
   }, [isOpen]);
 
   return (
-    <div ref={menuRef} className="fixed bottom-5 right-4 z-40 flex flex-col items-end md:right-6">
+    <div ref={menuRef} className="fixed bottom-6 right-6 z-40 hidden md:flex flex-col items-end">
       {/* Expanded Speed-Dial Card */}
       {isOpen && (
         <div className="mb-3 w-72 animate-slide-up overflow-hidden rounded-2xl border border-mist-200 bg-white shadow-2xl">
