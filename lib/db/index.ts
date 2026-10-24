@@ -65,7 +65,12 @@ async function createDatabase(): Promise<Database> {
 
 export function getDb(): Promise<Database> {
   const state = store();
-  state.db ??= createDatabase();
+  if (!state.db) {
+    state.db = createDatabase().catch((error) => {
+      state.db = undefined;
+      throw error;
+    });
+  }
   return state.db;
 }
 

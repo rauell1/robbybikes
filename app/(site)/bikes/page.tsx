@@ -8,7 +8,7 @@ import { activeFilterCount, parseBikeFilters, type RawSearchParams } from "@/lib
 import { business } from "@/lib/business";
 import { breadcrumbJsonLd, jsonLdScriptProps, pageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 type PageProps = { searchParams: Promise<RawSearchParams> };
 

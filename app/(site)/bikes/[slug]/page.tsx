@@ -30,7 +30,7 @@ import { SectionHeading } from "@/components/site/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/icons";
 import { buttonStyles } from "@/components/ui/button";
-import { getBikeBySlug, getRelatedBikes, getSampleListingCount } from "@/lib/db/queries";
+import { getBikeBySlug, getPublishedBikeSlugs, getRelatedBikes, getSampleListingCount } from "@/lib/db/queries";
 import {
   getSiteUrl,
   pageMetadata,
@@ -46,7 +46,16 @@ import { business } from "@/lib/business";
 import { bikeWhatsAppMessage, telHref, viewingRequestMessage, whatsappHref } from "@/lib/contact";
 import { cn } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
+
+export async function generateStaticParams() {
+  try {
+    const bikes = await getPublishedBikeSlugs();
+    return bikes.map((bike) => ({ slug: bike.slug }));
+  } catch {
+    return [];
+  }
+}
 
 type PageProps = { params: Promise<{ slug: string }> };
 

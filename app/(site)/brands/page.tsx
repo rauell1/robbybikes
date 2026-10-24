@@ -8,7 +8,7 @@ import { formatPriceFrom } from "@/lib/format";
 import { business } from "@/lib/business";
 import { breadcrumbJsonLd, jsonLdScriptProps, pageMetadata } from "@/lib/seo";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata = pageMetadata({
   title: "Motorcycle brands we stock",

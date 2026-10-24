@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, max, min, ne, or, type SQL } from "drizzle-orm";
 import { getDb } from "./index";
 import {
@@ -123,7 +124,7 @@ export type BrandSummary = {
   available: number;
 };
 
-export async function getBrandSummary(): Promise<BrandSummary[]> {
+export const getBrandSummary = cache(async (): Promise<BrandSummary[]> => {
   const db = await getDb();
   const rows = await db
     .select({
@@ -143,7 +144,7 @@ export async function getBrandSummary(): Promise<BrandSummary[]> {
     available: Number(row.available),
     minPrice: row.minPrice === null ? null : Number(row.minPrice),
   }));
-}
+});
 
 export type InventoryFacets = {
   brands: BrandSummary[];
@@ -152,7 +153,7 @@ export type InventoryFacets = {
   yearBounds: { min: number; max: number };
 };
 
-export async function getInventoryFacets(): Promise<InventoryFacets> {
+export const getInventoryFacets = cache(async (): Promise<InventoryFacets> => {
   const db = await getDb();
   const inStock = and(
     eq(motorcycles.isPublished, true),
@@ -201,28 +202,28 @@ export async function getInventoryFacets(): Promise<InventoryFacets> {
       max: Number(bounds?.maxYear ?? 0),
     },
   };
-}
+});
 
-export async function getBikeBySlug(slug: string): Promise<MotorcycleWithImages | null> {
+export const getBikeBySlug = cache(async (slug: string): Promise<MotorcycleWithImages | null> => {
   const db = await getDb();
   const bike = await db.query.motorcycles.findFirst({
     where: and(eq(motorcycles.slug, slug), eq(motorcycles.isPublished, true)),
     with: { images: { orderBy: imageOrder } },
   });
   return bike ?? null;
-}
+});
 
-export async function getBikeById(id: string): Promise<MotorcycleWithImages | null> {
+export const getBikeById = cache(async (id: string): Promise<MotorcycleWithImages | null> => {
   const db = await getDb();
   const bike = await db.query.motorcycles.findFirst({
     where: eq(motorcycles.id, id),
     with: { images: { orderBy: imageOrder } },
   });
   return bike ?? null;
-}
+});
 
 /** Featured listings, falling back to the newest available stock. */
-export async function getFeaturedBikes(limit = 6): Promise<MotorcycleWithImages[]> {
+export const getFeaturedBikes = cache(async (limit = 6): Promise<MotorcycleWithImages[]> => {
   const db = await getDb();
   const base = and(eq(motorcycles.isPublished, true), eq(motorcycles.status, "available"));
 
@@ -249,7 +250,7 @@ export async function getFeaturedBikes(limit = 6): Promise<MotorcycleWithImages[
     if (!merged.some((existing) => existing.id === bike.id)) merged.push(bike);
   }
   return merged;
-}
+});
 
 export async function getRelatedBikes(
   bike: { id: string; brand: string; priceKes: number },
@@ -287,7 +288,7 @@ export type InventoryStats = {
   brands: number;
 };
 
-export async function getInventoryStats(): Promise<InventoryStats> {
+export const getInventoryStats = cache(async (): Promise<InventoryStats> => {
   const db = await getDb();
   const [row] = await db
     .select({
@@ -311,9 +312,9 @@ export async function getInventoryStats(): Promise<InventoryStats> {
     inStock: Number(inStockRow?.value ?? 0),
     brands: brandRows.length,
   };
-}
+});
 
-export async function getPublishedBikeSlugs(): Promise<Array<{ slug: string; updatedAt: Date }>> {
+export const getPublishedBikeSlugs = cache(async (): Promise<Array<{ slug: string; updatedAt: Date }>> => {
   const db = await getDb();
   const rows = await db
     .select({ slug: motorcycles.slug, updatedAt: motorcycles.updatedAt })
@@ -321,23 +322,23 @@ export async function getPublishedBikeSlugs(): Promise<Array<{ slug: string; upd
     .where(and(eq(motorcycles.isPublished, true), inArray(motorcycles.status, [...IN_STOCK_STATUSES])))
     .orderBy(desc(motorcycles.updatedAt));
   return rows;
-}
+});
 
-export async function getSampleListingCount(): Promise<number> {
+export const getSampleListingCount = cache(async (): Promise<number> => {
   const db = await getDb();
   const [row] = await db
     .select({ value: count() })
     .from(motorcycles)
     .where(and(eq(motorcycles.isSample, true), eq(motorcycles.isPublished, true)));
   return Number(row?.value ?? 0);
-}
+});
 
-export async function getDistinctFieldValues(): Promise<{
+export const getDistinctFieldValues = cache(async (): Promise<{
   brands: string[];
   conditions: MotorcycleCondition[];
   transmissions: string[];
   usages: string[];
-}> {
+}> => {
   const db = await getDb();
   const [brandRows, transmissionRows, usageRows] = await Promise.all([
     db
@@ -365,11 +366,11 @@ export async function getDistinctFieldValues(): Promise<{
       .filter((value): value is string => Boolean(value)),
     usages: usageRows.map((row) => row.usage).filter((value): value is string => Boolean(value)),
   };
-}
+});
 
 export type ModelFamily = { model: string; brand: string; total: number; minPrice: number };
 
-export async function getModelFamilies(): Promise<ModelFamily[]> {
+export const getModelFamilies = cache(async (): Promise<ModelFamily[]> => {
   const db = await getDb();
   const rows = await db
     .select({
@@ -390,4 +391,4 @@ export async function getModelFamilies(): Promise<ModelFamily[]> {
     total: Number(row.total),
     minPrice: Number(row.minPrice ?? 0),
   }));
-}
+});

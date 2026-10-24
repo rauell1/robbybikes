@@ -23,7 +23,7 @@ import { generalWhatsAppMessage, telHref, whatsappHref } from "@/lib/contact";
 import { autoDealerJsonLd, jsonLdScriptProps, pageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export const metadata = pageMetadata({
   title: "Used motorcycles for sale in Eastleigh, Nairobi",
