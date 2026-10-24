@@ -24,15 +24,35 @@ type Props = {
   usages: string[];
 };
 
+const SIDEBAR_BUDGETS = [
+  { label: "Under 115k", min: "", max: "115000" },
+  { label: "115k - 135k", min: "115000", max: "135000" },
+  { label: "135k - 150k", min: "135000", max: "150000" },
+  { label: "150k+", min: "150000", max: "" },
+] as const;
+
 export function BikeFilterForm({ filters, brands, transmissions, usages }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [minPriceVal, setMinPriceVal] = useState<string>(
+    filters.minPrice ? String(filters.minPrice) : "",
+  );
+  const [maxPriceVal, setMaxPriceVal] = useState<string>(
+    filters.maxPrice ? String(filters.maxPrice) : "",
+  );
+  const [queryVal, setQueryVal] = useState(filters.q ?? "");
+
   const activeCount = activeFilterCount(filters);
 
   const transmissionOptions = Array.from(
     new Set([...TRANSMISSION_OPTIONS, ...transmissions].filter(Boolean)),
   );
   const usageOptions = Array.from(new Set([...USAGE_OPTIONS, ...usages].filter(Boolean)));
+
+  function applyPreset(min: string, max: string) {
+    setMinPriceVal(min);
+    setMaxPriceVal(max);
+  }
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,17 +96,17 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
   const panel = (
     <form onSubmit={onSubmit} className="space-y-5" aria-label="Filter motorcycles">
       <div className="flex items-center justify-between">
-        <h2 className="text-base font-semibold text-ink-900">Filters</h2>
+        <h2 className="text-base font-bold text-ink-900">Filter Inventory</h2>
         <div className="flex items-center gap-2">
           {activeCount > 0 ? (
-            <a href="/bikes" className="text-xs font-semibold text-accent-700 hover:text-accent-800">
+            <a href="/bikes" className="text-xs font-bold text-accent-700 hover:text-accent-800">
               Clear all
             </a>
           ) : null}
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="grid size-8 place-items-center rounded-md text-mist-600 hover:bg-mist-100 lg:hidden"
+            className="grid size-8 place-items-center rounded-lg text-mist-600 hover:bg-mist-100 lg:hidden"
           >
             <span className="sr-only">Close filters</span>
             <X className="size-4" aria-hidden="true" />
@@ -95,17 +115,31 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
       </div>
 
       <Field label="Keyword" htmlFor="filter-q">
-        <Input
-          id="filter-q"
-          name="q"
-          type="search"
-          placeholder="Model, colour, keyword"
-          defaultValue={filters.q}
-        />
+        <div className="relative">
+          <Input
+            id="filter-q"
+            name="q"
+            type="search"
+            placeholder="Model, keyword"
+            value={queryVal}
+            onChange={(e) => setQueryVal(e.target.value)}
+            className="rounded-xl pr-8"
+          />
+          {queryVal && (
+            <button
+              type="button"
+              onClick={() => setQueryVal("")}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-mist-400 hover:text-ink-900"
+              aria-label="Clear keyword"
+            >
+              <X className="size-3.5" />
+            </button>
+          )}
+        </div>
       </Field>
 
       <Field label="Brand" htmlFor="filter-brand">
-        <Select id="filter-brand" name="brand" defaultValue={filters.brand}>
+        <Select id="filter-brand" name="brand" defaultValue={filters.brand} className="rounded-xl">
           <option value="">All brands</option>
           {brands.map((brand) => (
             <option key={brand} value={brand}>
@@ -116,11 +150,11 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
       </Field>
 
       <Field label="Model" htmlFor="filter-model">
-        <Input id="filter-model" name="model" placeholder="e.g. Boxer" defaultValue={filters.model} />
+        <Input id="filter-model" name="model" placeholder="e.g. Boxer" defaultValue={filters.model} className="rounded-xl" />
       </Field>
 
       <fieldset>
-        <legend className="field-label">Price (KSh)</legend>
+        <legend className="field-label text-xs font-bold text-ink-800">Price Range (KSh)</legend>
         <div className="grid grid-cols-2 gap-2">
           <label className="sr-only" htmlFor="filter-min-price">
             Minimum price
@@ -133,7 +167,9 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
             min={1}
             step={1000}
             placeholder="Min"
-            defaultValue={filters.minPrice}
+            value={minPriceVal}
+            onChange={(e) => setMinPriceVal(e.target.value)}
+            className="rounded-xl"
           />
           <label className="sr-only" htmlFor="filter-max-price">
             Maximum price
@@ -146,13 +182,29 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
             min={1}
             step={1000}
             placeholder="Max"
-            defaultValue={filters.maxPrice}
+            value={maxPriceVal}
+            onChange={(e) => setMaxPriceVal(e.target.value)}
+            className="rounded-xl"
           />
+        </div>
+
+        {/* Budget quick chips */}
+        <div className="mt-2 flex flex-wrap gap-1">
+          {SIDEBAR_BUDGETS.map((b) => (
+            <button
+              key={b.label}
+              type="button"
+              onClick={() => applyPreset(b.min, b.max)}
+              className="rounded-md bg-mist-100 px-2 py-0.5 text-[10px] font-semibold text-mist-700 hover:bg-mist-200 transition-colors"
+            >
+              {b.label}
+            </button>
+          ))}
         </div>
       </fieldset>
 
       <fieldset>
-        <legend className="field-label">Engine capacity (cc)</legend>
+        <legend className="field-label text-xs font-bold text-ink-800">Engine capacity (cc)</legend>
         <div className="grid grid-cols-2 gap-2">
           <label className="sr-only" htmlFor="filter-min-cc">
             Minimum engine capacity
@@ -165,6 +217,7 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
             min={1}
             placeholder="Min"
             defaultValue={filters.minCc}
+            className="rounded-xl"
           />
           <label className="sr-only" htmlFor="filter-max-cc">
             Maximum engine capacity
@@ -177,12 +230,13 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
             min={1}
             placeholder="Max"
             defaultValue={filters.maxCc}
+            className="rounded-xl"
           />
         </div>
       </fieldset>
 
       <fieldset>
-        <legend className="field-label">Manufacturing year</legend>
+        <legend className="field-label text-xs font-bold text-ink-800">Manufacturing year</legend>
         <div className="grid grid-cols-2 gap-2">
           <label className="sr-only" htmlFor="filter-year-from">
             Year from
@@ -196,6 +250,7 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
             max={2100}
             placeholder="From"
             defaultValue={filters.yearFrom}
+            className="rounded-xl"
           />
           <label className="sr-only" htmlFor="filter-year-to">
             Year to
@@ -209,12 +264,13 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
             max={2100}
             placeholder="To"
             defaultValue={filters.yearTo}
+            className="rounded-xl"
           />
         </div>
       </fieldset>
 
       <Field label="Condition" htmlFor="filter-condition">
-        <Select id="filter-condition" name="condition" defaultValue={filters.condition ?? ""}>
+        <Select id="filter-condition" name="condition" defaultValue={filters.condition ?? ""} className="rounded-xl">
           <option value="">Any condition</option>
           {CONDITION_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
@@ -225,7 +281,7 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
       </Field>
 
       <Field label="Transmission" htmlFor="filter-transmission">
-        <Select id="filter-transmission" name="transmission" defaultValue={filters.transmission}>
+        <Select id="filter-transmission" name="transmission" defaultValue={filters.transmission} className="rounded-xl">
           <option value="">Any transmission</option>
           {transmissionOptions.map((option) => (
             <option key={option} value={option}>
@@ -236,7 +292,7 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
       </Field>
 
       <Field label="Intended use" htmlFor="filter-usage">
-        <Select id="filter-usage" name="usage" defaultValue={filters.usage}>
+        <Select id="filter-usage" name="usage" defaultValue={filters.usage} className="rounded-xl">
           <option value="">Any use</option>
           {usageOptions.map((option) => (
             <option key={option} value={option}>
@@ -247,7 +303,7 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
       </Field>
 
       <Field label="Availability" htmlFor="filter-availability">
-        <Select id="filter-availability" name="availability" defaultValue={filters.availability}>
+        <Select id="filter-availability" name="availability" defaultValue={filters.availability} className="rounded-xl">
           {AVAILABILITY_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -256,12 +312,12 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
         </Select>
       </Field>
 
-      <div className="space-y-2 pt-1">
-        <Button type="submit" full size="md">
-          Apply filters
+      <div className="space-y-2 pt-2">
+        <Button type="submit" full size="md" className="rounded-xl font-bold shadow-glow">
+          Apply Filters
         </Button>
-        <a href="/bikes" className={cn(buttonStyles({ variant: "ghost", size: "md" }), "w-full")}>
-          Reset filters
+        <a href="/bikes" className={cn(buttonStyles({ variant: "ghost", size: "md" }), "w-full rounded-xl")}>
+          Reset All
         </a>
       </div>
     </form>
@@ -273,29 +329,29 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
         type="button"
         onClick={() => setOpen(true)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between rounded-lg border border-mist-300 bg-white px-4 py-3 text-sm font-semibold text-ink-900 lg:hidden"
+        className="flex w-full items-center justify-between rounded-2xl border border-mist-300 bg-white px-4 py-3.5 text-sm font-bold text-ink-900 lg:hidden shadow-xs"
       >
         <span className="inline-flex items-center gap-2">
-          <SlidersHorizontal className="size-4" aria-hidden="true" />
-          Filters
+          <SlidersHorizontal className="size-4 text-accent-600" aria-hidden="true" />
+          <span>Filters & Search</span>
         </span>
         {activeCount > 0 ? (
-          <span className="rounded-full bg-accent-600 px-2 py-0.5 text-xs font-bold text-white">
-            {activeCount}
+          <span className="rounded-full bg-accent-600 px-2.5 py-0.5 text-xs font-bold text-white shadow-xs">
+            {activeCount} active
           </span>
         ) : (
-          <span className="text-xs font-normal text-mist-500">Refine results</span>
+          <span className="text-xs font-normal text-mist-500">Refine</span>
         )}
       </button>
 
       <div className="hidden lg:block">
-        <div className="sticky top-32 rounded-xl border border-mist-200 bg-white p-5">{panel}</div>
+        <div className="sticky top-28 rounded-2xl border border-mist-200 bg-white p-5 shadow-card">{panel}</div>
       </div>
 
       {open ? (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div
-            className="absolute inset-0 bg-ink-950/50"
+            className="absolute inset-0 bg-ink-950/70 backdrop-blur-xs transition-opacity"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
@@ -303,7 +359,7 @@ export function BikeFilterForm({ filters, brands, transmissions, usages }: Props
             role="dialog"
             aria-modal="true"
             aria-label="Filter motorcycles"
-            className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white p-5 shadow-lift"
+            className="absolute inset-x-0 bottom-0 max-h-[90vh] overflow-y-auto rounded-t-3xl bg-white p-6 shadow-2xl animate-slide-up scrollbar-thin"
           >
             {panel}
           </div>

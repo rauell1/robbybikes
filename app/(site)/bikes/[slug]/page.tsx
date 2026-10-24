@@ -15,6 +15,7 @@ import {
   Phone,
   Route,
   ShieldAlert,
+  ShieldCheck,
   Wrench,
 } from "lucide-react";
 import { Breadcrumbs } from "@/components/site/breadcrumbs";
@@ -22,12 +23,23 @@ import { BikeGallery } from "@/components/bikes/bike-gallery";
 import { BikeGrid } from "@/components/bikes/bike-grid";
 import { ShareListing } from "@/components/bikes/share-listing";
 import { EnquiryForm } from "@/components/forms/enquiry-form";
+import { FuelCalculator } from "@/components/bikes/fuel-calculator";
+import { WhatsAppBuilder } from "@/components/bikes/whatsapp-builder";
 import { SectionHeading } from "@/components/site/section-heading";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppIcon } from "@/components/icons";
 import { buttonStyles } from "@/components/ui/button";
 import { getBikeBySlug, getRelatedBikes, getSampleListingCount } from "@/lib/db/queries";
-import { getSiteUrl, pageMetadata, bikeSeoDescription, bikeTitle, bikeProductJsonLd, breadcrumbJsonLd, jsonLdScriptProps, absoluteUrl } from "@/lib/seo";
+import {
+  getSiteUrl,
+  pageMetadata,
+  bikeSeoDescription,
+  bikeTitle,
+  bikeProductJsonLd,
+  breadcrumbJsonLd,
+  jsonLdScriptProps,
+  absoluteUrl,
+} from "@/lib/seo";
 import { formatDate, formatEngine, formatKes, formatOdometer, statusMeta } from "@/lib/format";
 import { business } from "@/lib/business";
 import { bikeWhatsAppMessage, telHref, viewingRequestMessage, whatsappHref } from "@/lib/contact";
@@ -86,7 +98,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
     { label: "Registration", value: bike.registration, icon: ClipboardCheck },
   ].filter((spec) => Boolean(spec.value));
 
-  const message = bikeWhatsAppMessage(
+  const defaultMsg = bikeWhatsAppMessage(
     {
       brand: bike.brand,
       model: bike.model,
@@ -130,7 +142,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
       </div>
 
       <div className="container-page grid gap-8 py-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:gap-10 lg:py-10">
-        <div>
+        <div className="space-y-8">
           <BikeGallery
             images={bike.images.map((image) => ({
               id: image.id,
@@ -141,8 +153,8 @@ export default async function BikeDetailPage({ params }: PageProps) {
             isSample={bike.isSample}
           />
 
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold tracking-tight text-ink-900">About this motorcycle</h2>
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-ink-900">About this motorcycle</h2>
             <div className="mt-3 space-y-3 text-sm leading-relaxed text-mist-600">
               {bike.description.split(/\n{2,}/).map((paragraph, index) => (
                 <p key={index}>{paragraph}</p>
@@ -150,53 +162,55 @@ export default async function BikeDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold tracking-tight text-ink-900">Specifications</h2>
+          <div>
+            <h2 className="text-xl font-bold tracking-tight text-ink-900">Specifications</h2>
             {specs.length > 0 ? (
-              <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-mist-200 bg-mist-200 sm:grid-cols-3">
+              <dl className="mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-mist-200 bg-mist-200 sm:grid-cols-3">
                 {specs.map((spec) => (
-                  <div key={spec.label} className="bg-white p-3.5">
-                    <dt className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-mist-500">
-                      <spec.icon className="size-3.5" aria-hidden="true" />
+                  <div key={spec.label} className="bg-white p-4">
+                    <dt className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-mist-500">
+                      <spec.icon className="size-3.5 text-accent-600" aria-hidden="true" />
                       {spec.label}
                     </dt>
-                    <dd className="mt-1 text-sm font-semibold text-ink-900">{spec.value}</dd>
+                    <dd className="mt-1 text-sm font-bold text-ink-900">{spec.value}</dd>
                   </div>
                 ))}
               </dl>
             ) : (
-              <p className="mt-3 rounded-lg bg-mist-50 p-4 text-sm text-mist-600">
+              <p className="mt-3 rounded-xl bg-mist-50 p-4 text-sm text-mist-600">
                 Detailed specifications have not been recorded for this motorcycle yet. Ask us on
                 WhatsApp and we will check it in the yard.
               </p>
             )}
 
-            <div className="mt-3 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-mist-200 p-4">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-2xl border border-mist-200 p-4.5 bg-white shadow-xs">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-ink-900">
                   <CheckCircle2 className="size-4 text-emerald-600" aria-hidden="true" />
-                  Condition
+                  Condition & Inspection
                 </h3>
-                <p className="mt-1.5 text-sm text-mist-600">
+                <p className="mt-1.5 text-xs text-mist-600">
                   {bike.condition
-                    ? `Graded as ${bike.condition.replaceAll("_", " ")} by our team.`
+                    ? `Graded as ${bike.condition.replaceAll("_", " ")} by our mechanics.`
                     : "Condition has not been recorded."}{" "}
                   Always inspect in person before paying.
                 </p>
                 {bike.inspectionNotes ? (
-                  <p className="mt-2 whitespace-pre-line text-sm text-mist-600">{bike.inspectionNotes}</p>
+                  <p className="mt-2 whitespace-pre-line text-xs text-mist-600 border-t border-mist-100 pt-2 font-mono">
+                    {bike.inspectionNotes}
+                  </p>
                 ) : null}
               </div>
 
-              <div className="rounded-xl border border-mist-200 p-4">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-ink-900">
+              <div className="rounded-2xl border border-mist-200 p-4.5 bg-white shadow-xs">
+                <h3 className="flex items-center gap-2 text-sm font-bold text-ink-900">
                   <Wrench className="size-4 text-mist-500" aria-hidden="true" />
-                  Service history
+                  Service & Paperwork
                 </h3>
-                <p className="mt-1.5 text-sm text-mist-600">
+                <p className="mt-1.5 text-xs text-mist-600">
                   {bike.serviceHistory
                     ? bike.serviceHistory
-                    : "No service history has been documented for this motorcycle. We do not claim a verified history where none has been supplied."}
+                    : "No third-party service history documented. Logbook verified on-site during inspection."}
                 </p>
               </div>
             </div>
@@ -204,7 +218,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
             {!isPurchasable ? (
               <div
                 className={cn(
-                  "mt-3 flex items-start gap-3 rounded-xl border p-4",
+                  "mt-4 flex items-start gap-3 rounded-2xl border p-4",
                   bike.status === "sold"
                     ? "border-mist-300 bg-mist-50"
                     : "border-amber-200 bg-amber-50",
@@ -218,25 +232,76 @@ export default async function BikeDetailPage({ params }: PageProps) {
                   aria-hidden="true"
                 />
                 <div>
-                  <p className="text-sm font-semibold text-ink-900">{status.label}</p>
-                  <p className="mt-0.5 text-sm text-mist-600">
+                  <p className="text-sm font-bold text-ink-900">{status.label}</p>
+                  <p className="mt-0.5 text-xs text-mist-600">
                     {status.description} Ask us about similar motorcycles currently in the yard.
                   </p>
                   <Link
                     href="/bikes"
-                    className="mt-2 inline-flex items-center gap-1 text-sm font-semibold text-accent-700 hover:text-accent-800"
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-bold text-accent-700 hover:text-accent-800"
                   >
                     Browse available bikes
-                    <ArrowRight className="size-4" aria-hidden="true" />
+                    <ArrowRight className="size-3.5" aria-hidden="true" />
                   </Link>
                 </div>
               </div>
             ) : null}
           </div>
+
+          {/* Interactive Fuel & ROI Calculator */}
+          <FuelCalculator
+            priceKes={bike.priceKes}
+            engineCc={bike.engineCc}
+            brand={bike.brand}
+            model={bike.model}
+          />
+
+          {/* Interactive WhatsApp Intent Builder */}
+          <WhatsAppBuilder
+            brand={bike.brand}
+            model={bike.model}
+            priceKes={bike.priceKes}
+            engineCc={bike.engineCc}
+            year={bike.year}
+            listingUrl={listingUrl}
+          />
+
+          {/* Eastleigh Yard Inspection Checklist */}
+          <div className="rounded-2xl border border-mist-200 bg-mist-50/70 p-5 sm:p-6">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="size-5 text-accent-600" />
+              <h3 className="font-bold text-base text-ink-900">
+                Eastleigh Yard Pre-Purchase Checklist
+              </h3>
+            </div>
+            <p className="mt-1 text-xs text-mist-600">
+              When visiting our Juja Road yard, here is what our team will walk you through before
+              any payment:
+            </p>
+            <div className="mt-4 grid gap-2.5 sm:grid-cols-2 text-xs text-ink-800">
+              <div className="flex items-center gap-2 rounded-xl bg-white p-2.5 border border-mist-200">
+                <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                <span>Cold engine start & exhaust inspection</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-white p-2.5 border border-mist-200">
+                <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                <span>Chassis frame welds & fork straightness</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-white p-2.5 border border-mist-200">
+                <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                <span>Tyre tread depth & rim trueness</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-xl bg-white p-2.5 border border-mist-200">
+                <CheckCircle2 className="size-4 text-emerald-600 shrink-0" />
+                <span>Original Logbook & NTSA TIMS record</span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <aside className="lg:sticky lg:top-32 lg:self-start">
-          <div className="rounded-xl border border-mist-200 bg-white p-5 shadow-xs sm:p-6">
+        {/* Sticky Sidebar */}
+        <aside className="lg:sticky lg:top-28 lg:self-start">
+          <div className="rounded-2xl border border-mist-200 bg-white p-5 shadow-card sm:p-6">
             <div className="flex items-center justify-between gap-2">
               <Badge tone={status.tone} dot>
                 {status.label}
@@ -244,90 +309,104 @@ export default async function BikeDetailPage({ params }: PageProps) {
               {bike.isSample ? <Badge tone="accent">Sample listing</Badge> : null}
             </div>
 
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-mist-500">
+            <p className="mt-4 text-xs font-bold uppercase tracking-[0.14em] text-mist-500">
               {bike.brand}
             </p>
-            <h1 className="mt-1 text-2xl font-bold leading-tight tracking-tight text-ink-900 sm:text-3xl">
+            <h1 className="mt-1 text-2xl font-extrabold leading-tight tracking-tight text-ink-900 sm:text-3xl">
               {bike.model}
             </h1>
 
-            <p className="mt-4 text-3xl font-bold tracking-tight text-ink-900">
-              {formatKes(bike.priceKes)}
-            </p>
+            <div className="mt-4 flex items-baseline gap-2">
+              <span className="text-3xl font-black tracking-tight text-ink-900">
+                {formatKes(bike.priceKes)}
+              </span>
+            </div>
             <p className="mt-1 text-xs text-mist-500">
-              Asking price. The final price is agreed after inspection at the yard.
+              Asking price. Final price agreed upon physical inspection at the yard.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2 text-xs text-mist-600">
               {bike.year ? (
-                <span className="rounded-md bg-mist-100 px-2 py-1 font-medium">{bike.year}</span>
+                <span className="rounded-md bg-mist-100 px-2 py-1 font-semibold">{bike.year}</span>
               ) : null}
               {bike.engineCc ? (
-                <span className="rounded-md bg-mist-100 px-2 py-1 font-medium">{bike.engineCc} cc</span>
+                <span className="rounded-md bg-mist-100 px-2 py-1 font-semibold">
+                  {bike.engineCc} cc
+                </span>
               ) : null}
               {bike.odometerKm !== null ? (
-                <span className="rounded-md bg-mist-100 px-2 py-1 font-medium">
+                <span className="rounded-md bg-mist-100 px-2 py-1 font-semibold">
                   {formatOdometer(bike.odometerKm)}
                 </span>
               ) : null}
-              <span className="rounded-md bg-mist-100 px-2 py-1 font-medium capitalize">
+              <span className="rounded-md bg-mist-100 px-2 py-1 font-semibold capitalize">
                 {bike.condition.replaceAll("_", " ")}
               </span>
             </div>
 
-            <div className="mt-5 space-y-2">
+            <div className="mt-6 space-y-2.5">
               <a
-                href={whatsappHref(message)}
+                href={whatsappHref(defaultMsg)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={cn(buttonStyles({ variant: "whatsapp", size: "lg" }), "w-full justify-center")}
+                className={cn(
+                  buttonStyles({ variant: "whatsapp", size: "lg" }),
+                  "w-full justify-center rounded-xl shadow-green-glow font-bold",
+                )}
               >
                 <WhatsAppIcon className="size-5" />
-                Enquire on WhatsApp
+                <span>Enquire on WhatsApp</span>
               </a>
               <a
                 href={telHref(business.phones[0].international)}
-                className={cn(buttonStyles({ variant: "dark", size: "lg" }), "w-full justify-center")}
+                className={cn(
+                  buttonStyles({ variant: "dark", size: "lg" }),
+                  "w-full justify-center rounded-xl font-bold",
+                )}
               >
                 <Phone className="size-4" aria-hidden="true" />
-                Call about this bike
+                <span>Call Yard: {business.phones[0].display}</span>
               </a>
               <a
                 href="#enquiry"
-                className={cn(buttonStyles({ variant: "outline", size: "lg" }), "w-full justify-center")}
+                className={cn(
+                  buttonStyles({ variant: "outline", size: "lg" }),
+                  "w-full justify-center rounded-xl font-semibold",
+                )}
               >
-                Arrange a viewing
+                <span>Arrange a Viewing</span>
               </a>
             </div>
 
-            <div className="mt-5 space-y-3 border-t border-mist-200 pt-4 text-xs text-mist-600">
+            <div className="mt-6 space-y-3 border-t border-mist-200 pt-4 text-xs text-mist-600">
               <p className="flex items-start gap-2">
-                <MapPin className="mt-0.5 size-4 shrink-0 text-mist-400" aria-hidden="true" />
+                <MapPin className="mt-0.5 size-4 shrink-0 text-accent-600" aria-hidden="true" />
                 <span>
-                  View it at {business.address.display}. {business.address.landmark}.
+                  {business.address.display}. Landmark: {business.address.landmark}.
                 </span>
               </p>
               <p className="flex items-start gap-2">
                 <Info className="mt-0.5 size-4 shrink-0 text-mist-400" aria-hidden="true" />
                 <span>
                   Listed {formatDate(bike.createdAt)}
-                  {bike.updatedAt > bike.createdAt
-                    ? ` · updated ${formatDate(bike.updatedAt)}`
-                    : ""}. Confirm availability before travelling.
+                  {bike.updatedAt > bike.createdAt ? ` · updated ${formatDate(bike.updatedAt)}` : ""}.
+                  Call before travelling to confirm availability.
                 </span>
               </p>
-              <div className="flex items-center justify-between gap-2 pt-1">
+              <div className="flex items-center justify-between gap-2 pt-2 border-t border-mist-100">
                 <ShareListing title={`${title} — ${formatKes(bike.priceKes)}`} url={shareUrlValue} />
                 <a
-                  href={whatsappHref(viewingRequestMessage(
-                    { brand: bike.brand, model: bike.model, priceKes: bike.priceKes },
-                    listingUrl,
-                  ))}
+                  href={whatsappHref(
+                    viewingRequestMessage(
+                      { brand: bike.brand, model: bike.model, priceKes: bike.priceKes },
+                      listingUrl,
+                    ),
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="font-semibold text-accent-700 hover:text-accent-800"
+                  className="font-bold text-accent-700 hover:text-accent-800"
                 >
-                  Request a viewing time
+                  Book Viewing Slot
                 </a>
               </div>
             </div>
@@ -335,7 +414,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
 
           <p className="mt-3 px-1 text-[11px] leading-relaxed text-mist-500">
             {sampleCount > 0
-              ? "Sample listing: this motorcycle and its photo are demonstration data, not verified Robbybikes stock."
+              ? "Sample listing: demonstration data. Verified stock photographs will be uploaded from the Eastleigh yard."
               : "Specifications are supplied by the dealership for guidance. Always inspect the motorcycle and paperwork before purchase."}
           </p>
         </aside>
@@ -344,10 +423,10 @@ export default async function BikeDetailPage({ params }: PageProps) {
       <section id="enquiry" className="border-y border-mist-200 bg-mist-50 py-12 sm:py-14">
         <div className="container-page grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-12">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent-700">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent-700">
               Arrange a viewing
             </p>
-            <h2 className="mt-2 text-2xl font-bold tracking-tight text-ink-900 sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-ink-900 sm:text-3xl">
               Ask about this {bike.brand} {bike.model}
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-mist-600">
@@ -364,21 +443,21 @@ export default async function BikeDetailPage({ params }: PageProps) {
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
                   <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600" aria-hidden="true" />
-                  {item}
+                  <span>{item}</span>
                 </li>
               ))}
             </ul>
 
-            <div className="mt-6 rounded-xl border border-mist-200 bg-white p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-mist-500">
-                Prefer to talk?
+            <div className="mt-6 rounded-2xl border border-mist-200 bg-white p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-mist-500">
+                Prefer to talk directly?
               </p>
-              <div className="mt-2 space-y-1">
+              <div className="mt-2 space-y-1.5">
                 {business.phones.map((phone) => (
                   <a
                     key={phone.international}
                     href={telHref(phone.international)}
-                    className="block text-sm font-semibold text-ink-900 hover:text-accent-700"
+                    className="block text-sm font-bold text-ink-900 hover:text-accent-700"
                   >
                     {phone.display}{" "}
                     <span className="text-xs font-normal text-mist-500">· {phone.label}</span>
@@ -388,7 +467,7 @@ export default async function BikeDetailPage({ params }: PageProps) {
             </div>
           </div>
 
-          <div className="rounded-xl border border-mist-200 bg-white p-5 shadow-xs sm:p-6">
+          <div className="rounded-2xl border border-mist-200 bg-white p-5 shadow-card sm:p-6">
             <EnquiryForm
               motorcycleId={bike.id}
               source={`listing:${bike.slug}`}
