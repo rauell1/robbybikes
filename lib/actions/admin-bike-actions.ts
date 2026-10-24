@@ -2,10 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, asc, eq, max, ne } from "drizzle-orm";
+import { and, asc, eq, like, max, ne } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
-import { motorcycleImages, motorcycles } from "@/lib/db/schema";
+import { enquiries, motorcycleImages, motorcycles } from "@/lib/db/schema";
 import { requireAdmin } from "@/lib/auth";
 import { motorcycleFormSchema } from "@/lib/validation";
 import { slugify } from "@/lib/utils";
@@ -548,5 +548,80 @@ async function revalidateBikeById(bikeId: string): Promise<void> {
     revalidatePath(`/admin/bikes/${bikeId}`);
   } catch {
     revalidatePath("/admin/bikes");
+  }
+}
+
+export async function clearSampleStockAction(): Promise<void> {
+  await requireAdmin("/admin");
+  const db = await getDb();
+  await db.delete(enquiries).where(eq(enquiries.source, "seed-sample"));
+  await db
+    .delete(motorcycles)
+    .where(and(like(motorcycles.slug, "sample-%"), eq(motorcycles.isSample, true)));
+  revalidatePath("/");
+  revalidatePath("/bikes");
+  revalidatePath("/admin");
+  revalidatePath("/admin/bikes");
+}
+
+export async function duplicateBikeAction(formData: FormData): Promise<void> {
+  await requireAdmin("/admin/bikes");
+  const id = readField(formData, "id");
+  if (!z.uuid().safeParse(id).success) return;
+
+  const db = await getDb();
+  const [bike] = await db.select().from(motorcycles).where(eq(motorcycles.id, id)).limit(1);
+  if (!bike) return;
+
+  const newSlug = await ensureUniqueSlug(`${bike.brand} ${bike.model} copy`);
+  const [created] = await db
+    .insert(motorcycles)
+    .values({
+      slug: newSlug,
+      brand: bike.brand,
+      model: `${bike.model} (Copy)`,
+      year: bike.year,
+      engineCc: bike.engineCc,
+      priceKes: bike.priceKes,
+      condition: bike.condition,
+      odometerKm: bike.odometerKm,
+      transmission: bike.transmission,
+      fuelType: bike.fuelType,
+      colour: bike.colour,
+      usage: bike.usage,
+      registration: bike.registration,
+      description: bike.description,
+      inspectionNotes: bike.inspectionNotes,
+      serviceHistory: bike.serviceHistory,
+      status: "available",
+      isPublished: false,
+      isFeatured: false,
+      isSample: false,
+      internalNotes: bike.internalNotes,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .returning({ id: motorcycles.id });
+
+  if (created) {
+    const photos = await db
+      .select()
+      .from(motorcycleImages)
+      .where(eq(motorcycleImages.motorcycleId, id));
+
+    if (photos.length > 0) {
+      await db.insert(motorcycleImages).values(
+        photos.map((p) => ({
+          motorcycleId: created.id,
+          imageUrl: p.imageUrl,
+          altText: p.altText,
+          sortOrder: p.sortOrder,
+          storageKey: p.storageKey,
+        })),
+      );
+    }
+
+    revalidatePath("/admin/bikes");
+    redirect(`/admin/bikes/${created.id}?duplicated=1`);
   }
 }

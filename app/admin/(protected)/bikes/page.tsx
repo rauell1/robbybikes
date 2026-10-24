@@ -9,7 +9,8 @@ import { listAdminBikes } from "@/lib/db/admin-queries";
 import { getDb } from "@/lib/db";
 import { motorcycles, type MotorcycleStatus } from "@/lib/db/schema";
 import { formatDateTime, formatKes, statusMeta } from "@/lib/format";
-import { setBikePublishedAction } from "@/lib/actions/admin-bike-actions";
+import { setBikePublishedAction, duplicateBikeAction } from "@/lib/actions/admin-bike-actions";
+import { QuickStatusSelect } from "@/components/admin/quick-status-select";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = { title: "Inventory" };
