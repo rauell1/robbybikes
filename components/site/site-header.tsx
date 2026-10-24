@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { MapPin, Menu, Phone, X } from "lucide-react";
+import { Heart, MapPin, Menu, Phone, X } from "lucide-react";
 import { Logo } from "@/components/site/logo";
 import { WhatsAppIcon } from "@/components/icons";
 import { business, mapsSearchUrl } from "@/lib/business";
 import { generalWhatsAppMessage, telHref, whatsappHref } from "@/lib/contact";
 import { trackEvent } from "@/lib/analytics";
+import { useFavorites } from "@/components/bikes/favorites-context";
 import { buttonStyles } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -24,9 +25,9 @@ export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [openedOnPath, setOpenedOnPath] = useState(pathname);
+  const { count: favoritesCount, openFavoritesModal } = useFavorites();
 
-  // Close the menu when navigation changes the route (state adjusted during
-  // render rather than in an effect, per React's guidance).
+  // Close the menu when navigation changes the route
   if (open && openedOnPath !== pathname) {
     setOpen(false);
     setOpenedOnPath(pathname);
@@ -57,7 +58,7 @@ export function SiteHeader() {
             <MapPin className="size-3.5 shrink-0 text-accent-400" aria-hidden="true" />
             <span className="truncate">{business.address.shortDisplay}</span>
             <span className="hidden text-white/40 sm:inline">
-              · {business.address.landmark}
+              : {business.address.landmark}
             </span>
           </a>
           <a
@@ -96,6 +97,27 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
+          {/* Saved / Shortlist button */}
+          <button
+            type="button"
+            onClick={openFavoritesModal}
+            className="relative inline-flex items-center gap-1.5 rounded-xl border border-mist-200 px-3 py-2 text-xs font-semibold text-ink-800 hover:border-mist-300 hover:bg-mist-50 transition-colors"
+            aria-label="View saved shortlist"
+          >
+            <Heart
+              className={cn(
+                "size-4 text-mist-500",
+                favoritesCount > 0 && "fill-red-600 text-red-600",
+              )}
+            />
+            <span className="hidden sm:inline">Saved</span>
+            {favoritesCount > 0 ? (
+              <span className="grid size-4 place-items-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+                {favoritesCount}
+              </span>
+            ) : null}
+          </button>
+
           <a
             href={telHref(business.phones[0].international)}
             className={cn(
@@ -173,7 +195,7 @@ export function SiteHeader() {
               >
                 <Phone className="size-4" aria-hidden="true" />
                 <span className="font-semibold">{phone.display}</span>
-                <span className="text-mist-500">· {phone.label}</span>
+                <span className="text-mist-500">: {phone.label}</span>
               </a>
             ))}
             <a

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { ArrowLeft, ExternalLink, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Printer, Trash2 } from "lucide-react";
 import { BikeForm } from "@/components/admin/bike-form";
 import { ImageManager } from "@/components/admin/image-manager";
 import { ConfirmButton } from "@/components/admin/confirm-button";

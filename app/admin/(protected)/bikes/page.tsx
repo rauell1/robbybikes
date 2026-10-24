@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { eq } from "drizzle-orm";
-import { Eye, EyeOff, Plus, Search } from "lucide-react";
+import { Download, Eye, EyeOff, Plus, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
 import { requireAdmin } from "@/lib/auth";

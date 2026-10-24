@@ -22,6 +22,7 @@ import { Breadcrumbs } from "@/components/site/breadcrumbs";
 import { BikeGallery } from "@/components/bikes/bike-gallery";
 import { BikeGrid } from "@/components/bikes/bike-grid";
 import { ShareListing } from "@/components/bikes/share-listing";
+import { SaveBikeButton } from "@/components/bikes/save-bike-button";
 import { EnquiryForm } from "@/components/forms/enquiry-form";
 import { FuelCalculator } from "@/components/bikes/fuel-calculator";
 import { WhatsAppBuilder } from "@/components/bikes/whatsapp-builder";
@@ -306,6 +307,9 @@ export default async function BikeDetailPage({ params }: PageProps) {
               <Badge tone={status.tone} dot>
                 {status.label}
               </Badge>
+              {bike.registration ? (
+                <Badge tone="available">Logbook ready</Badge>
+              ) : null}
               {bike.isSample ? <Badge tone="accent">Sample listing</Badge> : null}
             </div>
 
@@ -394,7 +398,10 @@ export default async function BikeDetailPage({ params }: PageProps) {
                 </span>
               </p>
               <div className="flex items-center justify-between gap-2 pt-2 border-t border-mist-100">
-                <ShareListing title={`${title} - ${formatKes(bike.priceKes)}`} url={shareUrlValue} />
+                <div className="flex items-center gap-2">
+                  <ShareListing title={`${title} - ${formatKes(bike.priceKes)}`} url={shareUrlValue} />
+                  <SaveBikeButton bike={bike} />
+                </div>
                 <a
                   href={whatsappHref(
                     viewingRequestMessage(

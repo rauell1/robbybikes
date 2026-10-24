@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, Calendar, Check, Cog, Eye, Gauge, Scale } from "lucide-react";
+import { ArrowRight, Calendar, Check, Cog, Eye, Gauge, Heart, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { BikePhoto } from "@/components/bikes/bike-photo";
 import { QuickViewModal } from "@/components/bikes/quick-view-modal";
 import { useCompare } from "@/components/bikes/compare-context";
+import { useFavorites } from "@/components/bikes/favorites-context";
 import { WhatsAppIcon } from "@/components/icons";
 import { formatEngine, formatKes, formatOdometer, statusMeta } from "@/lib/format";
 import { bikeWhatsAppMessage, whatsappHref } from "@/lib/contact";
@@ -24,8 +25,10 @@ export function BikeCard({
   const [activePhotoIdx, setActivePhotoIdx] = useState(0);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const { isComparing, toggleCompare } = useCompare();
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const comparing = isComparing(bike.id);
+  const favorite = isFavorite(bike.id);
   const photos = bike.images.length > 0 ? bike.images : [];
   const currentPhoto = photos[activePhotoIdx] ?? null;
   const status = statusMeta(bike.status);
@@ -79,7 +82,7 @@ export function BikeCard({
           </Link>
 
           {/* Badges Overlay */}
-          <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+          <div className="pointer-events-none absolute left-3 top-3 flex flex-wrap items-center gap-1.5 z-10">
             <Badge tone={status.tone} dot>
               {status.label}
             </Badge>
@@ -91,14 +94,28 @@ export function BikeCard({
             )}
           </div>
 
-          {bike.isSample ? (
-            <div className="pointer-events-none absolute right-3 top-3">
-              <Badge tone="sample">Sample</Badge>
-            </div>
-          ) : null}
+          {/* Top Right Actions: Favorite & Sample Badge */}
+          <div className="absolute right-3 top-3 flex items-center gap-1.5 z-10">
+            {bike.isSample ? <Badge tone="sample">Sample</Badge> : null}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFavorite(bike);
+              }}
+              className={cn(
+                "grid size-8 place-items-center rounded-full bg-white/90 shadow-sm backdrop-blur-xs transition-all hover:scale-110",
+                favorite ? "text-red-600 bg-white" : "text-mist-500 hover:text-red-500",
+              )}
+              aria-label={favorite ? `Remove ${bike.model} from saved bikes` : `Save ${bike.model}`}
+            >
+              <Heart className={cn("size-4", favorite && "fill-red-600")} />
+            </button>
+          </div>
 
           {/* Quick Action Floating Buttons (Quick View & Compare) */}
-          <div className="absolute right-3 bottom-3 flex items-center gap-1.5 opacity-90 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
+          <div className="absolute right-3 bottom-3 flex items-center gap-1.5 opacity-90 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 z-10">
             <button
               type="button"
               onClick={() => setIsQuickViewOpen(true)}
@@ -118,7 +135,7 @@ export function BikeCard({
                   ? "bg-accent-500 text-white"
                   : "bg-ink-950/85 text-white hover:bg-ink-950",
               )}
-              aria-label={comparing ? `Remove from comparison` : `Add to comparison`}
+              aria-label={comparing ? "Remove from comparison" : "Add to comparison"}
             >
               {comparing ? <Check className="size-3.5" /> : <Scale className="size-3.5" />}
               <span className="hidden xs:inline">{comparing ? "Compared" : "Compare"}</span>
@@ -178,7 +195,15 @@ export function BikeCard({
               {formatKes(bike.priceKes)}
             </span>
           </div>
-          <p className="mt-0.5 text-xs text-mist-500">{status.description}</p>
+
+          {bike.registration ? (
+            <div className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700">
+              <Check className="size-3 text-emerald-600" />
+              <span>Logbook ready</span>
+            </div>
+          ) : (
+            <p className="mt-0.5 text-xs text-mist-500">{status.description}</p>
+          )}
 
           {specs.length > 0 ? (
             <ul className="mt-3.5 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-mist-600 border-t border-mist-100 pt-3">

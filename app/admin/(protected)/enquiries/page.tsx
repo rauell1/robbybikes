@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { Phone, Search } from "lucide-react";
+import { Download, Phone, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
 import { WhatsAppIcon } from "@/components/icons";

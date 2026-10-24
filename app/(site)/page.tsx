@@ -5,6 +5,7 @@ import { SearchPanel } from "@/components/home/search-panel";
 import { BrandGrid } from "@/components/home/brand-grid";
 import { WhyUs } from "@/components/home/why-us";
 import { HowItWorks } from "@/components/home/how-it-works";
+import { RecentDeliveries } from "@/components/home/recent-deliveries";
 import { LocationSection } from "@/components/home/location-section";
 import { BikeGrid } from "@/components/bikes/bike-grid";
 import { SectionHeading } from "@/components/site/section-heading";
