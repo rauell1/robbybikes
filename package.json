@@ -27,6 +27,7 @@
     "@neon/env": "^1.6.4",
     "@neon/realtime": "^0.1.2",
     "@neondatabase/auth": "^0.6.0-beta",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "2.8.2",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
