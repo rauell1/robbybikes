@@ -33,3 +33,8 @@ yarn-error.log*
 /test-results
 .vercel
 .neon
+
+# Cloudflare (OpenNext build output, Wrangler state, local secrets)
+/.open-next/
+/.wrangler/
+.dev.vars

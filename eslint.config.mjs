@@ -5,6 +5,8 @@ const config = [
     ignores: [
       "node_modules/**",
       ".next/**",
+      ".open-next/**",
+      ".wrangler/**",
       ".data/**",
       "drizzle/meta/**",
       "next-env.d.ts",

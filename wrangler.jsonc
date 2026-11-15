@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "robbybikes",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "directory": ".open-next/assets", "binding": "ASSETS" },
+  // Runtime secrets (set with `npx wrangler secret put NAME` or in the dashboard):
+  // DATABASE_URL, ADMIN_SESSION_SECRET, plus the storage credentials in .env.example.
+  "keep_vars": true,
+  "workers_dev": true,
+  "routes": [{ "pattern": "robbybikes.rauell.systems", "custom_domain": true }],
+  "observability": { "enabled": true }
+}
