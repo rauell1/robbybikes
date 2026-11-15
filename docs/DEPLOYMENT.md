@@ -4,7 +4,7 @@
 >
 > - GitHub repository secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `DATABASE_URL` and `ADMIN_SESSION_SECRET` (the build prerenders pages from the database). Repository variables: `NEXT_PUBLIC_SITE_URL`, `NEXT_PUBLIC_GA_ID`.
 > - Worker secrets (`npx wrangler secret put NAME`, or the Cloudflare dashboard): every runtime variable from section 3 below.
-> - Photos: point the S3-compatible settings (`AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION=auto`, `NEON_OBJECT_STORAGE_BUCKET`) at a Cloudflare R2 bucket, or keep `BLOB_READ_WRITE_TOKEN` for an existing Vercel Blob store.
+> - Photos: new uploads go to Neon object storage (Neon project `rough-wildflower-25148353`, private bucket `assets`, served through `/api/storage/...`). Set `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION=us-east-2` and `NEON_OBJECT_STORAGE_BUCKET=assets` as Worker secrets (`neon env pull -s object-storage` prints the values). Photos uploaded earlier to Vercel Blob keep their full URLs and keep loading while `BLOB_READ_WRITE_TOKEN` stays valid. The same settings can point at Cloudflare R2 later (`AWS_REGION=auto`).
 > - Local check: `npm run cf:preview` with the variables in a `.dev.vars` file.
 > - On Workers the database client is created per request (see `lib/db/index.ts`).
 >
