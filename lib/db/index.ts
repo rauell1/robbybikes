@@ -45,7 +45,22 @@ function store(): DbGlobal {
   return globalForDb.__robbybikesDb;
 }
 
+/**
+ * On Cloudflare the database is reached through Hyperdrive (the HYPERDRIVE
+ * binding in wrangler.jsonc), which keeps connections to Neon open near the
+ * database instead of opening a new TLS connection on every request.
+ * DATABASE_URL is used everywhere else (Node, scripts, tests).
+ */
+function hyperdriveConnectionString(): string | undefined {
+  const context = (globalThis as Record<symbol, unknown>)[Symbol.for("__cloudflare-context__")] as
+    | { env?: { HYPERDRIVE?: { connectionString?: string } } }
+    | undefined;
+  return context?.env?.HYPERDRIVE?.connectionString;
+}
+
 function connectionString(): string {
+  const hyperdrive = hyperdriveConnectionString();
+  if (hyperdrive) return hyperdrive;
   const url = process.env.DATABASE_URL?.trim();
   if (!url) {
     throw new Error(
