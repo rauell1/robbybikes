@@ -3,7 +3,6 @@ import "@fontsource-variable/inter";
 import "./globals.css";
 import { business } from "@/lib/business";
 import { getSiteUrl } from "@/lib/seo";
-import { Analytics } from "@vercel/analytics/next";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteUrl()),
@@ -50,7 +49,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en-KE">
       <body>
         {children}
-        <Analytics />
       </body>
     </html>
   );

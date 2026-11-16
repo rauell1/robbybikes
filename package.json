@@ -29,7 +29,6 @@
     "@neon/realtime": "^0.1.2",
     "@neondatabase/auth": "^0.6.0-beta",
     "@opennextjs/cloudflare": "^1.20.17",
-    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "2.8.2",
     "aws4fetch": "1.0.20",
     "class-variance-authority": "0.7.1",
