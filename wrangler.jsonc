@@ -29,6 +29,7 @@
   "observability": { "enabled": true },
   // Page cache for open-next.config.ts.
   "kv_namespaces": [
-    { "binding": "NEXT_INC_CACHE_KV", "id": "0d6f13d48c9e4b3ebf8b896be32eb6a2" }
+    { "binding": "NEXT_INC_CACHE_KV", "id": "0d6f13d48c9e4b3ebf8b896be32eb6a2" },
+    { "binding": "NEXT_TAG_CACHE_KV", "id": "964f960b37a94473b157b4f9251074e5" }
   ]
 }
