@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getObject, objectStorageConfigured } from "@/lib/object-storage";
 
 export async function GET(
   _request: NextRequest,
@@ -12,51 +12,24 @@ export async function GET(
     return new NextResponse("Invalid file path", { status: 400 });
   }
 
-  const endpoint = process.env.AWS_ENDPOINT_URL_S3;
-  const accessKeyId = process.env.AWS_ACCESS_KEY_ID;
-  const secretAccessKey = process.env.AWS_SECRET_ACCESS_KEY;
-  const region = process.env.AWS_REGION || "us-east-2";
-  const bucket = process.env.NEON_OBJECT_STORAGE_BUCKET || "assets";
-
-  if (!endpoint || !accessKeyId || !secretAccessKey) {
+  if (!objectStorageConfigured()) {
     return new NextResponse("Object storage is not configured", { status: 503 });
   }
 
-  const s3 = new S3Client({
-    forcePathStyle: true,
-    endpoint,
-    region,
-    credentials: {
-      accessKeyId,
-      secretAccessKey,
-    },
-  });
-
   try {
-    const res = await s3.send(
-      new GetObjectCommand({
-        Bucket: bucket,
-        Key: key,
-      }),
-    );
-
-    if (!res.Body) {
-      return new NextResponse("File not found", { status: 404 });
-    }
-
-    const stream = res.Body.transformToWebStream();
-    return new Response(stream, {
-      headers: {
-        "Content-Type": res.ContentType || "application/octet-stream",
-        "Cache-Control": "public, max-age=31536000, immutable",
-        ...(res.ContentLength ? { "Content-Length": String(res.ContentLength) } : {}),
-      },
-    });
-  } catch (error: unknown) {
-    const err = error as { name?: string; message?: string };
-    if (err.name === "NoSuchKey") {
+    const object = await getObject(key);
+    if (!object?.body) {
       return new NextResponse("Not Found", { status: 404 });
     }
-    return new NextResponse(err.message || "Error reading object", { status: 500 });
+    const length = object.headers.get("content-length");
+    return new Response(object.body, {
+      headers: {
+        "Content-Type": object.headers.get("content-type") || "application/octet-stream",
+        "Cache-Control": "public, max-age=31536000, immutable",
+        ...(length ? { "Content-Length": length } : {}),
+      },
+    });
+  } catch {
+    return new NextResponse("Error reading object", { status: 500 });
   }
 }

@@ -15,7 +15,32 @@ const globalForDb = globalThis as typeof globalThis & {
   __robbybikesDb?: DbGlobal;
 };
 
+/**
+ * Cloudflare Workers forbids reusing a socket across requests, so there the
+ * connection is scoped to the current request (keyed on its execution
+ * context, which OpenNext publishes under this well-known symbol). On Node
+ * (local dev, scripts) there is no such context and one client is shared.
+ */
+const cloudflareContextSymbol = Symbol.for("__cloudflare-context__");
+const perRequestDb = new WeakMap<object, DbGlobal>();
+
+function currentRequestScope(): object | undefined {
+  const context = (globalThis as Record<symbol, unknown>)[cloudflareContextSymbol] as
+    | { ctx?: object }
+    | undefined;
+  return context?.ctx;
+}
+
 function store(): DbGlobal {
+  const scope = currentRequestScope();
+  if (scope) {
+    let scoped = perRequestDb.get(scope);
+    if (!scoped) {
+      scoped = {};
+      perRequestDb.set(scope, scoped);
+    }
+    return scoped;
+  }
   globalForDb.__robbybikesDb ??= {};
   return globalForDb.__robbybikesDb;
 }

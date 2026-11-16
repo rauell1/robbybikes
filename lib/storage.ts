@@ -2,6 +2,7 @@ import "server-only";
 import { randomUUID } from "node:crypto";
 import { mkdir, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { deleteObject, objectStorageConfigured, putObject } from "./object-storage";
 
 export const MAX_IMAGE_BYTES = 6 * 1024 * 1024;
 
@@ -23,8 +24,9 @@ export function isBlobStorageConfigured(): boolean {
   return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 }
 
+/** S3-compatible object storage (Neon today, Cloudflare R2 later). */
 export function isNeonStorageConfigured(): boolean {
-  return Boolean(process.env.AWS_ENDPOINT_URL_S3 && process.env.AWS_ACCESS_KEY_ID);
+  return objectStorageConfigured();
 }
 
 /** Magic-byte check so a spoofed Content-Type cannot sneak in a script. */
@@ -61,7 +63,7 @@ export type StoredImage = {
 
 /**
  * Stores an uploaded motorcycle photo.
- * Prioritizes Neon Object Storage (S3-compatible) when configured,
+ * Prioritizes S3-compatible object storage (Neon, later Cloudflare R2) when configured,
  * then Vercel Blob when BLOB_READ_WRITE_TOKEN is configured,
  * otherwise writes to a local directory served through /api/uploads (development only).
  */
@@ -84,26 +86,8 @@ export async function storeImageFile(file: File): Promise<StoredImage> {
   }
 
   if (isNeonStorageConfigured()) {
-    const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3");
-    const s3 = new S3Client({
-      forcePathStyle: true,
-      endpoint: process.env.AWS_ENDPOINT_URL_S3,
-      region: process.env.AWS_REGION || "us-east-2",
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-      },
-    });
-    const bucket = process.env.NEON_OBJECT_STORAGE_BUCKET || "assets";
     const key = `motorcycles/${randomUUID()}${extension}`;
-    await s3.send(
-      new PutObjectCommand({
-        Bucket: bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: file.type,
-      }),
-    );
+    await putObject(key, buffer, file.type);
     return { url: `/api/storage/${key}`, key: `neon:${key}` };
   }
 
@@ -117,9 +101,13 @@ export async function storeImageFile(file: File): Promise<StoredImage> {
     return { url: blob.url, key: blob.pathname };
   }
 
-  if (process.env.VERCEL === "1") {
+  // Hosted deployments (Cloudflare Workers, Vercel) have no writable disk.
+  const isHosted =
+    process.env.VERCEL === "1" ||
+    (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers");
+  if (isHosted) {
     throw new ImageStorageError(
-      "Image uploads need Vercel Blob or Neon Object Storage on this deployment. Set storage credentials, or add an image URL instead.",
+      "Image uploads need S3-compatible object storage (Cloudflare R2 or Neon) or Vercel Blob on this deployment. Set storage credentials, or add an image URL instead.",
     );
   }
 
@@ -136,24 +124,7 @@ export async function deleteStoredImage(image: {
 }): Promise<void> {
   try {
     if (image.storageKey?.startsWith("neon:") && isNeonStorageConfigured()) {
-      const key = image.storageKey.slice("neon:".length);
-      const { S3Client, DeleteObjectCommand } = await import("@aws-sdk/client-s3");
-      const s3 = new S3Client({
-        forcePathStyle: true,
-        endpoint: process.env.AWS_ENDPOINT_URL_S3,
-        region: process.env.AWS_REGION || "us-east-2",
-        credentials: {
-          accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-          secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-        },
-      });
-      const bucket = process.env.NEON_OBJECT_STORAGE_BUCKET || "assets";
-      await s3.send(
-        new DeleteObjectCommand({
-          Bucket: bucket,
-          Key: key,
-        }),
-      );
+      await deleteObject(image.storageKey.slice("neon:".length));
       return;
     }
     if (image.storageKey?.startsWith("local:")) {
