@@ -33,7 +33,7 @@ jobs:
           ADMIN_SESSION_SECRET: ${{ secrets.ADMIN_SESSION_SECRET }}
           # The repository variable still held the old Vercel address, so
           # canonical links and the sitemap pointed search engines there.
-          NEXT_PUBLIC_SITE_URL: https://robbybikes.rauell.systems
+          NEXT_PUBLIC_SITE_URL: https://robbybikes.rauell.workers.dev
           NEXT_PUBLIC_GA_ID: ${{ vars.NEXT_PUBLIC_GA_ID }}
       - name: Deploy
         run: npx wrangler deploy
