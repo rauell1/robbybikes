@@ -1,6 +1,7 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
+import { INVENTORY_CACHE_TAG } from "@/lib/db/queries";
 import { redirect } from "next/navigation";
 import { and, asc, eq, like, max, ne } from "drizzle-orm";
 import { z } from "zod";
@@ -84,6 +85,7 @@ async function ensureUniqueSlug(base: string, excludeId?: string): Promise<strin
 }
 
 function revalidateInventory(slug?: string) {
+  revalidateTag(INVENTORY_CACHE_TAG, { expire: 0 });
   revalidatePath("/");
   revalidatePath("/bikes");
   revalidatePath("/brands");
@@ -637,6 +639,7 @@ export async function clearSampleStockAction(): Promise<void> {
   await db
     .delete(motorcycles)
     .where(and(like(motorcycles.slug, "sample-%"), eq(motorcycles.isSample, true)));
+  revalidateTag(INVENTORY_CACHE_TAG, { expire: 0 });
   revalidatePath("/");
   revalidatePath("/bikes");
   revalidatePath("/admin");

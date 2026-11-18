@@ -1,4 +1,5 @@
 import { cache } from "react";
+import { unstable_cache } from "next/cache";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lte, max, min, ne, or, type SQL } from "drizzle-orm";
 import { getDb } from "./index";
 import {
@@ -153,7 +154,16 @@ export type InventoryFacets = {
   yearBounds: { min: number; max: number };
 };
 
-export const getInventoryFacets = cache(async (): Promise<InventoryFacets> => {
+/**
+ * Tag for the inventory queries cached across requests below. The admin bike
+ * actions clear it (lib/actions/admin-bike-actions.ts), so edits show at once;
+ * otherwise the cached values are refreshed every 5 minutes.
+ */
+export const INVENTORY_CACHE_TAG = "inventory";
+const INVENTORY_CACHE = { tags: [INVENTORY_CACHE_TAG], revalidate: 300 };
+
+export const getInventoryFacets = cache(() => cachedInventoryFacets());
+const cachedInventoryFacets = unstable_cache(async (): Promise<InventoryFacets> => {
   const db = await getDb();
   const inStock = and(
     eq(motorcycles.isPublished, true),
@@ -202,7 +212,7 @@ export const getInventoryFacets = cache(async (): Promise<InventoryFacets> => {
       max: Number(bounds?.maxYear ?? 0),
     },
   };
-});
+}, ["inventory-facets"], INVENTORY_CACHE);
 
 export const getBikeBySlug = cache(async (slug: string): Promise<MotorcycleWithImages | null> => {
   const db = await getDb();
@@ -333,7 +343,8 @@ export const getSampleListingCount = cache(async (): Promise<number> => {
   return Number(row?.value ?? 0);
 });
 
-export const getDistinctFieldValues = cache(async (): Promise<{
+export const getDistinctFieldValues = cache(() => cachedDistinctFieldValues());
+const cachedDistinctFieldValues = unstable_cache(async (): Promise<{
   brands: string[];
   conditions: MotorcycleCondition[];
   transmissions: string[];
@@ -366,7 +377,7 @@ export const getDistinctFieldValues = cache(async (): Promise<{
       .filter((value): value is string => Boolean(value)),
     usages: usageRows.map((row) => row.usage).filter((value): value is string => Boolean(value)),
   };
-});
+}, ["inventory-field-values"], INVENTORY_CACHE);
 
 export type ModelFamily = { model: string; brand: string; total: number; minPrice: number };
 
