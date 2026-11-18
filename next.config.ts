@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
   serverExternalPackages: ["postgres", "embedded-postgres"],
+  // See lib/undici-fetch.ts: undici cannot run on Workers.
+  turbopack: { resolveAlias: { undici: "./lib/undici-fetch.ts" } },
   experimental: {
     serverActions: {
       bodySizeLimit: "25mb",
