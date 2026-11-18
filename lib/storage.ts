@@ -101,10 +101,8 @@ export async function storeImageFile(file: File): Promise<StoredImage> {
     return { url: blob.url, key: blob.pathname };
   }
 
-  // Hosted deployments (Cloudflare Workers, Vercel) have no writable disk.
-  const isHosted =
-    process.env.VERCEL === "1" ||
-    (typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers");
+  // Cloudflare Workers have no writable disk.
+  const isHosted = typeof navigator !== "undefined" && navigator.userAgent === "Cloudflare-Workers";
   if (isHosted) {
     throw new ImageStorageError(
       "Image uploads need S3-compatible object storage (Cloudflare R2 or Neon) or Vercel Blob on this deployment. Set storage credentials, or add an image URL instead.",

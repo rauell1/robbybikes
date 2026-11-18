@@ -160,7 +160,7 @@ export default async function PrintSpecSheetPage({ params }: PageProps) {
               </div>
             </div>
             <p className="text-[10px] text-mist-500 mt-2">
-              Website: robbybikes.vercel.app : Physical Yard: Juja Road, Eastleigh, Nairobi
+              Website: robbybikes.rauell.systems : Physical Yard: Juja Road, Eastleigh, Nairobi
             </p>
           </div>
 

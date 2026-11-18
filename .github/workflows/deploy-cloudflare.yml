@@ -31,7 +31,9 @@ jobs:
           # The build prerenders pages, so it reads the production database.
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           ADMIN_SESSION_SECRET: ${{ secrets.ADMIN_SESSION_SECRET }}
-          NEXT_PUBLIC_SITE_URL: ${{ vars.NEXT_PUBLIC_SITE_URL }}
+          # The repository variable still held the old Vercel address, so
+          # canonical links and the sitemap pointed search engines there.
+          NEXT_PUBLIC_SITE_URL: https://robbybikes.rauell.systems
           NEXT_PUBLIC_GA_ID: ${{ vars.NEXT_PUBLIC_GA_ID }}
       - name: Deploy
         run: npx wrangler deploy
