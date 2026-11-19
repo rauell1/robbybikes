@@ -114,7 +114,7 @@ All variables are read on the server only, except `NEXT_PUBLIC_*` values.
 | `ADMIN_SESSION_SECRET` | Yes | Secret used to sign admin session cookies. At least 32 characters. |
 | `WHATSAPP_NUMBER` | Yes | WhatsApp number in international format, digits only. Confirm with the owner which SIM has WhatsApp. |
 | `SOCIAL_TIKTOK_URL` | No | Official TikTok profile. Leave blank until the account is verified; blank hides the link. |
-| `BLOB_READ_WRITE_TOKEN` | Production uploads | Vercel Blob token. Without it, uploads are written to `UPLOAD_DIR`. |
+| `BLOB_READ_WRITE_TOKEN` | Production uploads | Legacy Vercel Blob token, only for photos uploaded before the move to S3-compatible object storage. Without any storage configured, uploads are written to `UPLOAD_DIR`. |
 | `UPLOAD_DIR` | No | Filesystem location for uploads when Blob is not configured. Defaults to `.data/uploads`. |
 | `NEXT_PUBLIC_GA_ID` | No | Google Analytics 4 measurement ID. Analytics stays off when blank. |
 | `SERVER_ACTION_ALLOWED_ORIGINS` | No | Extra comma-separated hostnames allowed to post server actions when behind a proxy. |
@@ -226,13 +226,13 @@ The smoke test expects a running site (`npm run start` or `npm run dev`) and a s
 
 ## Deployment
 
-Production target: **Vercel** + **Neon PostgreSQL**.
+Production target: **Cloudflare Workers** + **Neon PostgreSQL** (through Cloudflare Hyperdrive), live at https://robbybikes.rauell.workers.dev.
 
-1. Create a Neon project and copy the pooled connection string (`...?sslmode=require`).
-2. Import the repository into Vercel.
-3. Set environment variables in Vercel: `DATABASE_URL`, `ADMIN_SESSION_SECRET`, `NEXT_PUBLIC_SITE_URL`, `WHATSAPP_NUMBER`, and `BLOB_READ_WRITE_TOKEN` (create a Blob store in the Vercel dashboard for image uploads).
+1. `.github/workflows/deploy-cloudflare.yml` builds with the OpenNext adapter and deploys every push to `main`. It needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
+2. Set the runtime values as Worker secrets in Cloudflare: `DATABASE_URL`, `ADMIN_SESSION_SECRET`, `NEXT_PUBLIC_SITE_URL`, `WHATSAPP_NUMBER` and the object storage keys (`AWS_*`, `OBJECT_STORAGE_BUCKET`).
+3. The page cache lives in the R2 bucket and KV namespace bound in `wrangler.jsonc`.
 4. Leave `DEMO_MODE` unset so no demo administrator is created.
-5. Deploy, then apply migrations and remove any demo content:
+5. After the first deploy, apply migrations and remove any demo content:
 
 ```bash
 DATABASE_URL="<neon-url>" npm run db:migrate
@@ -240,7 +240,7 @@ DATABASE_URL="<neon-url>" npm run db:sample:clear
 DATABASE_URL="<neon-url>" npm run admin:create -- --email owner@example.com --password 'a-long-password'
 ```
 
-6. Point the domain at Vercel, then update `NEXT_PUBLIC_SITE_URL` and redeploy so canonical URLs, the sitemap and WhatsApp listing links use the real domain.
+6. If the site address changes, update `NEXT_PUBLIC_SITE_URL` and redeploy so canonical URLs, the sitemap and WhatsApp listing links use it.
 
 **Never run `npm run demo:db` in production.** It exists only for local previews. Production always uses the hosted `DATABASE_URL`.
 
@@ -269,7 +269,7 @@ lib/
   auth*.ts           session signing and verification
   business.ts        single source of truth for dealership details
   validation.ts      Zod schemas shared by forms and server actions
-  storage.ts         image storage (Vercel Blob or local disk)
+  storage.ts         image storage (S3-compatible object storage, legacy Vercel Blob, or local disk)
   seo.ts             metadata and JSON-LD helpers
 drizzle/             generated SQL migrations
 scripts/             CLI scripts (seed, migrate, import, demo database, tests)
@@ -311,3 +311,28 @@ These rules are part of the product, not just guidance:
 ## Licence and ownership
 
 Private project for Robbybikes. Not intended for redistribution.
+
+## Project information
+
+| | |
+|---|---|
+| Live site | https://robbybikes.rauell.workers.dev |
+| Hosting | Cloudflare Workers |
+| Default branch | `main` |
+| Repository | Public |
+
+### Stack
+
+- Next.js 16 (App Router), React 19, TypeScript (strict), Tailwind CSS 4
+- Drizzle ORM with Neon PostgreSQL through Cloudflare Hyperdrive
+- Neon object storage for photos, Cloudflare R2 for the page cache
+
+### Deployment
+
+Production runs on Cloudflare Workers at https://robbybikes.rauell.workers.dev. `.github/workflows/deploy-cloudflare.yml` builds and deploys on every push to `main`, using the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. Public build-time values are repository variables; runtime secrets are Worker secrets.
+
+### Contributing and security
+
+- How to set up, test and submit changes: [CONTRIBUTING.md](CONTRIBUTING.md)
+- How to report a vulnerability: [SECURITY.md](SECURITY.md)
+- Expected behaviour in project spaces: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
