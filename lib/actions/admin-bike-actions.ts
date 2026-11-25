@@ -639,11 +639,9 @@ export async function clearSampleStockAction(): Promise<void> {
   await db
     .delete(motorcycles)
     .where(and(like(motorcycles.slug, "sample-%"), eq(motorcycles.isSample, true)));
-  revalidateTag(INVENTORY_CACHE_TAG, { expire: 0 });
-  revalidatePath("/");
-  revalidatePath("/bikes");
-  revalidatePath("/admin");
-  revalidatePath("/admin/bikes");
+  revalidateInventory();
+  // The deleted sample bikes' own pages are cached for a day; refresh them all.
+  revalidatePath("/bikes/[slug]", "page");
 }
 
 export async function duplicateBikeAction(formData: FormData): Promise<void> {
