@@ -23,7 +23,10 @@ import { generalWhatsAppMessage, telHref, whatsappHref } from "@/lib/contact";
 import { autoDealerJsonLd, jsonLdScriptProps, pageMetadata } from "@/lib/seo";
 import { cn } from "@/lib/utils";
 
-export const revalidate = 60;
+// Bike admin actions refresh this at once (revalidateInventory in
+// lib/actions/admin-bike-actions.ts); the daily rebuild is only a backstop.
+// Rebuilding every minute was 84% of this Worker's CPU.
+export const revalidate = 86400;
 
 export const metadata = pageMetadata({
   title: "Used motorcycles for sale in Eastleigh, Nairobi",

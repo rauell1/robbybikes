@@ -8,7 +8,10 @@ import { activeFilterCount, parseBikeFilters, type RawSearchParams } from "@/lib
 import { business } from "@/lib/business";
 import { breadcrumbJsonLd, jsonLdScriptProps, pageMetadata } from "@/lib/seo";
 
-export const revalidate = 60;
+// Bike admin actions refresh this at once (revalidateInventory in
+// lib/actions/admin-bike-actions.ts); the daily rebuild is only a backstop.
+// Rebuilding every minute was 84% of this Worker's CPU.
+export const revalidate = 86400;
 
 type PageProps = { searchParams: Promise<RawSearchParams> };
 
