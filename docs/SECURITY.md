@@ -41,7 +41,7 @@ How the Robbybikes site protects the admin console, customer data and uploads, a
 
 ## Known limitations
 
-- **Rate limiting is in-memory.** It is reliable on a single instance, which covers local use and small deployments, but serverless instances do not share memory. For strict enforcement at scale, add a platform WAF rule or a shared store (Upstash Redis) and swap `lib/rate-limit.ts`.
+- **Rate limiting has two layers.** The in-memory limits in `lib/rate-limit.ts` keep the longer windows (10 minutes to an hour) per Worker copy. On Cloudflare, `sharedRateLimit()` adds burst limits counted across every copy through the `LOGIN_RATE_LIMITER` (5 a minute per address) and `ENQUIRY_RATE_LIMITER` (3 a minute per address) bindings in `wrangler.jsonc`.
 - **No email notifications.** Enquiries land in the admin console; the team should check it during opening hours. Adding transactional email is a follow-up decision, not an omission.
 - **No two-factor authentication.** Accounts are limited to staff the owner creates; use long unique passwords.
 - **No automated dependency scanning** is configured in the repository; `npm audit` and Vercel's dependency alerts are the current controls.

@@ -5,11 +5,11 @@
 
 **Robbybikes: website and inventory platform for a used motorcycle dealership in Eastleigh, Nairobi. Browse live stock, enquire by phone or WhatsApp; staff manage stock in an admin console.**
 
-[![Live: robbybikes.rauell.workers.dev](https://img.shields.io/badge/Live-robbybikes.rauell.workers.dev-0d9488?style=for-the-badge&logo=cloudflare&logoColor=white)](https://robbybikes.rauell.workers.dev) ![Status: live](https://img.shields.io/badge/Status-Live-2ea44f?style=for-the-badge) ![Public repository](https://img.shields.io/badge/Repo-Public-555555?style=for-the-badge&logo=github)
+[![Live: robbybikes.rauell.systems](https://img.shields.io/badge/Live-robbybikes.rauell.systems-0d9488?style=for-the-badge&logo=cloudflare&logoColor=white)](https://robbybikes.rauell.systems) ![Status: live](https://img.shields.io/badge/Status-Live-2ea44f?style=for-the-badge) ![Public repository](https://img.shields.io/badge/Repo-Public-555555?style=for-the-badge&logo=github)
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178c6?style=flat-square&logo=typescript&logoColor=white) ![Next.js](https://img.shields.io/badge/Next.js-000000?style=flat-square&logo=nextdotjs&logoColor=white) ![Drizzle](https://img.shields.io/badge/Drizzle-c5f74f?style=flat-square&logo=drizzle&logoColor=white) ![Neon Postgres](https://img.shields.io/badge/Neon_Postgres-00e599?style=flat-square&logo=postgresql&logoColor=white) ![Cloudflare Workers](https://img.shields.io/badge/Cloudflare_Workers-f38020?style=flat-square&logo=cloudflare&logoColor=white)
 
-[Live site](https://robbybikes.rauell.workers.dev) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
+[Live site](https://robbybikes.rauell.systems) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md) · [Code of conduct](CODE_OF_CONDUCT.md)
 
 </div>
 
@@ -242,7 +242,7 @@ The smoke test expects a running site (`npm run start` or `npm run dev`) and a s
 
 ## Deployment
 
-Production target: **Cloudflare Workers** + **Neon PostgreSQL** (through Cloudflare Hyperdrive), live at https://robbybikes.rauell.workers.dev.
+Production target: **Cloudflare Workers** + **Neon PostgreSQL** (through Cloudflare Hyperdrive), live at https://robbybikes.rauell.systems.
 
 1. `.github/workflows/deploy-cloudflare.yml` builds with the OpenNext adapter and deploys every push to `main`. It needs the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets.
 2. Set the runtime values as Worker secrets in Cloudflare: `DATABASE_URL`, `ADMIN_SESSION_SECRET`, `NEXT_PUBLIC_SITE_URL`, `WHATSAPP_NUMBER` and the object storage keys (`AWS_*`, `OBJECT_STORAGE_BUCKET`).
@@ -332,7 +332,7 @@ Private project for Robbybikes. Not intended for redistribution.
 
 | | |
 |---|---|
-| Live site | https://robbybikes.rauell.workers.dev |
+| Live site | https://robbybikes.rauell.systems |
 | Hosting | Cloudflare Workers |
 | Default branch | `main` |
 | Repository | Public |
@@ -345,7 +345,7 @@ Private project for Robbybikes. Not intended for redistribution.
 
 ### Deployment
 
-Production runs on Cloudflare Workers at https://robbybikes.rauell.workers.dev. `.github/workflows/deploy-cloudflare.yml` builds and deploys on every push to `main`, using the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. Public build-time values are repository variables; runtime secrets are Worker secrets.
+Production runs on Cloudflare Workers at https://robbybikes.rauell.systems. `.github/workflows/deploy-cloudflare.yml` builds and deploys on every push to `main`, using the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. Public build-time values are repository variables; runtime secrets are Worker secrets.
 
 ### Contributing and security
 

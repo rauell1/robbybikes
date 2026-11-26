@@ -9,7 +9,7 @@ export async function callNeonHelloFunction(): Promise<{
   if (!url) {
     throw new Error("NEON_FUNCTION_HELLO_BASE_URL is not configured.");
   }
-  const res = await fetch(url);
+  const res = await fetch(url, { signal: AbortSignal.timeout(15_000) });
   const body = await res.text();
   return {
     ok: res.ok,

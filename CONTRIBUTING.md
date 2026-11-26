@@ -66,7 +66,7 @@ All of them must pass. If a check fails for a reason unrelated to your change, s
 
 ## Deployment
 
-Production runs on Cloudflare Workers at https://robbybikes.rauell.workers.dev. `.github/workflows/deploy-cloudflare.yml` builds and deploys on every push to `main`, using the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. Public build-time values are repository variables; runtime secrets are Worker secrets.
+Production runs on Cloudflare Workers at https://robbybikes.rauell.systems. `.github/workflows/deploy-cloudflare.yml` builds and deploys on every push to `main`, using the `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. Public build-time values are repository variables; runtime secrets are Worker secrets.
 
 ## Questions
 
