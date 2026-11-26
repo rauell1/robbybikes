@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the version currently deployed from the `main` branch to https://robbybikes.rauell.workers.dev receives security fixes. Older commits, forks and preview builds are not supported.
+Only the version currently deployed from the `main` branch to https://robbybikes.rauell.systems receives security fixes. Older commits, forks and preview builds are not supported.
 
 ## Reporting a vulnerability
 
@@ -26,7 +26,7 @@ Please include:
 
 In scope:
 
-- the production site at https://robbybikes.rauell.workers.dev and its API routes,
+- the production site at https://robbybikes.rauell.systems and its API routes,
 - the source code and configuration in this repository.
 
 Out of scope:

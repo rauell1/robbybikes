@@ -25,6 +25,7 @@ export async function checkAIGateway(): Promise<{
       headers: {
         Authorization: `Bearer ${token}`,
       },
+      signal: AbortSignal.timeout(15_000),
     });
 
     const body = await res.json();

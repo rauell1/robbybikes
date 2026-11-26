@@ -5,6 +5,22 @@ const allowedOrigins = (process.env.SERVER_ACTION_ALLOWED_ORIGINS ?? "")
   .map((origin) => origin.trim())
   .filter(Boolean);
 
+const contentSecurityPolicy = [
+  "default-src 'self'",
+  // Next.js inlines its bootstrap scripts; Cloudflare Web Analytics is the only outside script.
+  "script-src 'self' 'unsafe-inline' https://static.cloudflareinsights.com",
+  "style-src 'self' 'unsafe-inline'",
+  // Bike photos come from object storage, older uploads and pasted links, so any https image.
+  "img-src 'self' data: blob: https:",
+  "font-src 'self' data:",
+  "connect-src 'self' https:",
+  "frame-src 'none'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+].join("; ");
+
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
@@ -25,6 +41,18 @@ const nextConfig: NextConfig = {
     ],
     localPatterns: [{ pathname: "/**" }],
   },
+  async redirects() {
+    // The workers.dev address skips the firewall rules on the custom domain and
+    // split search ranking between two addresses, so it sends visitors on.
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "robbybikes.rauell.workers.dev" }],
+        destination: "https://robbybikes.rauell.systems/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
@@ -43,6 +71,7 @@ const nextConfig: NextConfig = {
             value: "camera=(), microphone=(), geolocation=(), payment=()",
           },
           { key: "X-DNS-Prefetch-Control", value: "on" },
+          { key: "Content-Security-Policy", value: contentSecurityPolicy },
         ],
       },
       {

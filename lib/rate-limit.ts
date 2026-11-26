@@ -54,3 +54,26 @@ export function rateLimit(
 export function resetRateLimits(): void {
   buckets.clear();
 }
+
+type RateLimiterBinding = { limit(options: { key: string }): Promise<{ success: boolean }> };
+
+/**
+ * Cloudflare rate limiting binding (wrangler.jsonc "ratelimits"), counted
+ * across every Worker copy, which the in-memory limit above cannot do. Its
+ * window is at most 60 seconds, so it guards bursts while rateLimit() keeps
+ * the longer windows. Fails open where the binding is missing (local
+ * development, tests) or errors, so a limiter fault never blocks customers.
+ */
+export async function sharedRateLimit(
+  binding: "LOGIN_RATE_LIMITER" | "ENQUIRY_RATE_LIMITER",
+  key: string,
+): Promise<boolean> {
+  try {
+    const { getCloudflareContext } = await import("@opennextjs/cloudflare");
+    const limiter = (getCloudflareContext().env as unknown as Record<string, RateLimiterBinding | undefined>)[binding];
+    if (!limiter) return true;
+    return (await limiter.limit({ key })).success;
+  } catch {
+    return true;
+  }
+}

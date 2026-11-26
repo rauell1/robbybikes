@@ -11,7 +11,7 @@ import {
   DUMMY_PASSWORD_HASH,
   verifyPassword,
 } from "@/lib/auth";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, sharedRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
 
 export type LoginState = { error?: string };
@@ -29,6 +29,9 @@ export async function loginAction(_previous: LoginState, formData: FormData): Pr
     return {
       error: `Too many sign-in attempts. Try again in ${Math.ceil(ipLimit.retryAfterSeconds / 60)} minutes.`,
     };
+  }
+  if (!(await sharedRateLimit("LOGIN_RATE_LIMITER", `login:ip:${ip}`))) {
+    return { error: "Too many sign-in attempts. Try again in a minute." };
   }
 
   const parsed = loginSchema.safeParse({

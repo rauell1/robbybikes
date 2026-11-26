@@ -7,7 +7,7 @@ import { getDb } from "@/lib/db";
 import { enquiries, motorcycles } from "@/lib/db/schema";
 import { enquiryFormSchema } from "@/lib/validation";
 import { normalisePhone } from "@/lib/utils";
-import { rateLimit } from "@/lib/rate-limit";
+import { rateLimit, sharedRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
 
 export type EnquiryFormState = {
@@ -57,7 +57,7 @@ export async function submitEnquiry(
   // Shared mobile networks (CGNAT) can front several customers, so this limit
   // is generous while still stopping scripted abuse.
   const ipLimit = rateLimit(`enquiry:ip:${ip}`, { max: 8, windowMs: 10 * 60_000 });
-  if (!ipLimit.ok) {
+  if (!ipLimit.ok || !(await sharedRateLimit("ENQUIRY_RATE_LIMITER", `enquiry:ip:${ip}`))) {
     return {
       status: "error",
       message:
